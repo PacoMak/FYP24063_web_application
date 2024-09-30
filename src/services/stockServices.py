@@ -2,7 +2,29 @@ import yfinance as yf
 import time
 import datetime
 
-supportStock = ["MSFT", "TSLA", "CEG", "VST", "GME", "APGE", "MASI"]
+supportStock = [
+    "FUTU",
+    "TAL",
+    "ZK",
+    "NIO",
+    "BEKE",
+    "MNSO",
+    "BILI",
+    "EDU",
+    "LKNCY",
+    "BZ",
+    "DJTWW",
+    "CORT",
+    "LI",
+    "GPCR",
+    "ICUI",
+    "DJT",
+    "WB",
+    "ZIM",
+    "HTHT",
+    "WYNMY",
+    "GSHD",
+]
 interval_mapper = {
     60: "1m",
     120: "2m",
@@ -15,18 +37,13 @@ interval_mapper = {
     432000: "5d",
     604800: "1wk",
 }
-"""
-    interval    max-day
-    1m          7days
-
-"""
 
 
 def getStocksData(stocks_list):
     tickers = yf.Tickers(" ".join(stocks_list))
     data = {}
     for ticker in stocks_list:
-        hist = tickers.tickers[ticker].history(period="1d", interval="1m")
+        hist = tickers.tickers[ticker].history(period="max", interval="30m")
         hist.reset_index(inplace=True)
         data[ticker] = hist.to_json(orient="records", lines=False)
     return data
