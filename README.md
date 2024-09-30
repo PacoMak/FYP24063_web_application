@@ -31,3 +31,9 @@
     python app.py
 ```
 
+## example url
+### get stocks data
+```bash
+    http://127.0.0.1:5000/stock/?stockNames=MSFT&stockNames=TSLA
+```
+
