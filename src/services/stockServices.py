@@ -43,7 +43,7 @@ def getStocksData(stocks_list):
     tickers = yf.Tickers(" ".join(stocks_list))
     data = {}
     for ticker in stocks_list:
-        hist = tickers.tickers[ticker].history(period="max", interval="30m")
+        hist = tickers.tickers[ticker].history(period="1mo", interval="5m")
         hist.reset_index(inplace=True)
         data[ticker] = hist.to_json(orient="records", lines=False)
     return data
