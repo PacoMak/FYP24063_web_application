@@ -1,30 +1,7 @@
 import yfinance as yf
 import time
-import datetime
 
-supportStock = [
-    "FUTU",
-    "TAL",
-    "ZK",
-    "NIO",
-    "BEKE",
-    "MNSO",
-    "BILI",
-    "EDU",
-    "LKNCY",
-    "BZ",
-    "DJTWW",
-    "CORT",
-    "LI",
-    "GPCR",
-    "ICUI",
-    "DJT",
-    "WB",
-    "ZIM",
-    "HTHT",
-    "WYNMY",
-    "GSHD",
-]
+supportStock = ["MSFT", "AAPL", "GOOG", "MMM", "GS", "NKE", "AXP", "HON", "CRM", "JPM"]
 interval_mapper = {
     60: "1m",
     120: "2m",
@@ -37,26 +14,35 @@ interval_mapper = {
     432000: "5d",
     604800: "1wk",
 }
+PERIOD = "5y"
 
 
-def getStocksData(stocks_list):
-    tickers = yf.Tickers(" ".join(stocks_list))
+def getStocksData(tickers_list, interval=86400):
+    tickers = yf.Tickers(" ".join(tickers_list))
     data = {}
-    for ticker in stocks_list:
-        hist = tickers.tickers[ticker].history(period="1mo", interval="5m")
+    for ticker in tickers_list:
+        hist = tickers.tickers[ticker].history(
+            period=PERIOD, interval=interval_mapper[interval]
+        )
         hist.reset_index(inplace=True)
         data[ticker] = hist.to_json(orient="records", lines=False)
     return data
 
 
+def getStockData(ticker, interval=86400):
+    ticker = yf.Ticker(ticker)
+    hist = ticker.history(period=PERIOD, interval=interval_mapper[interval])
+    return hist.to_json(orient="records", lines=False)
+
+
 # for latest data
-def get_stock_stream(tickers_list, interval=60):
+def get_stock_stream(tickers_list, interval=86400):
     while True:
         tickers = yf.Tickers(" ".join(tickers_list))
         data = {}
         for ticker in tickers_list:
             hist = tickers.tickers[ticker].history(
-                period="1d", interval=interval_mapper[interval]
+                period=PERIOD, interval=interval_mapper[interval]
             )
             hist.reset_index(inplace=True)
             latest_data = hist.iloc[[-1]].reset_index(drop=True)
