@@ -1,11 +1,10 @@
 export const ROUTES = Object.freeze({
-  Portfolio: {
-    key: "PORTFOLIO",
-    path: "/portfolio",
+  Dashboard: {
+    key: "DASHBOARD",
+    path: "/dashboard",
   },
-  Stock: {
-    key: "STOCK",
-    path: "/stock/:ticker",
-    render: (ticker) => `/stock/${ticker}`,
+  Config: {
+    key: "CONFIG",
+    path: "/config",
   },
 });

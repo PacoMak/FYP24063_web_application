@@ -1,13 +1,27 @@
-import { Box } from "@mui/material";
 import { RouterProvider } from "react-router-dom";
-import styled from "styled-components";
+import { ThemeProvider } from "styled-components";
+import {
+  ThemeProvider as MuiThemeProvider,
+  createTheme as createMuiTheme,
+} from "@mui/material";
 import { router } from "./routes";
+import { theme } from "./theme";
+
+const MuiTheme = createMuiTheme({
+  typography: {
+    button: {
+      textTransform: "none",
+    },
+  },
+});
 
 function App() {
   return (
-    <>
-      <RouterProvider router={router} />
-    </>
+    <ThemeProvider theme={theme}>
+      <MuiThemeProvider theme={MuiTheme}>
+        <RouterProvider router={router} />
+      </MuiThemeProvider>
+    </ThemeProvider>
   );
 }
 
