@@ -6,6 +6,8 @@ import {
 } from "@mui/material";
 import { router } from "./routes";
 import { theme } from "./theme";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 const MuiTheme = createMuiTheme({
   typography: {
@@ -19,7 +21,9 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <MuiThemeProvider theme={MuiTheme}>
-        <RouterProvider router={router} />
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <RouterProvider router={router} />
+        </LocalizationProvider>
       </MuiThemeProvider>
     </ThemeProvider>
   );
