@@ -11,8 +11,8 @@ import Drawer from "@mui/material/Drawer";
 import { memo, useMemo } from "react";
 import { ROUTES } from "../../constants";
 import { useNavigate } from "react-router-dom";
-import styled, { useTheme } from "styled-components";
-
+import styled from "styled-components";
+import HKULogo from ".././../images/hku-logo.jpg";
 const StyledDrawer = styled(Drawer)`
   width: ${({ $drawerWidth }) => $drawerWidth}px;
   flex-shrink: 0;
@@ -25,6 +25,9 @@ const StyledDrawer = styled(Drawer)`
 `;
 const StyledListItemText = styled(ListItemText)`
   text-align: center;
+`;
+const HKUlogo = styled.img`
+  width: 100%;
 `;
 export const SideBar = memo(({ drawerWidth }) => {
   const items = useMemo(
@@ -43,7 +46,10 @@ export const SideBar = memo(({ drawerWidth }) => {
   const navigate = useNavigate();
   return (
     <StyledDrawer variant="permanent" anchor="left" $drawerWidth={drawerWidth}>
-      <Toolbar />
+      <Toolbar>
+        <HKUlogo src={HKULogo} alt="HKU Logo" />
+      </Toolbar>
+
       <Divider />
       <List>
         {items.map(({ text, path }) => (

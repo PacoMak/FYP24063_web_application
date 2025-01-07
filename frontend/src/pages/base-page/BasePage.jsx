@@ -14,9 +14,9 @@ const StyledBox = styled(Box)`
 `;
 
 export const BasePage = memo(({ children }) => {
-  const drawerWidth = 200;
+  const drawerWidth = 250;
   return (
-    <Box sx={{ display: "flex", height: "100vh" }}>
+    <Box sx={{ display: "flex", height: "100%" }}>
       <CssBaseline />
       <AppBar drawerWidth={drawerWidth} />
       <SideBar drawerWidth={drawerWidth} />
