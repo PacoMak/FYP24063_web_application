@@ -43,16 +43,37 @@ const ButtonWrapper = styled(Box)`
 `;
 
 const validationSchema = Yup.object().shape({
-  tau: Yup.number().required("Required"),
-  alpha: Yup.number().required("Required"),
-  beta: Yup.number().required("Required"),
-  batchSize: Yup.number().required("Required"),
-  epochs: Yup.number().required("Required"),
-  startDate: Yup.date().required("Required"),
-  endDate: Yup.date().required("Required"),
-  selectedStocks: Yup.array()
-    .min(1, "Select at least one stock")
-    .required("Required"),
+  tau: Yup.number()
+    .required("Required")
+    .min(0, "Must be greater than 0")
+    .max(1, "Must be less than 1"),
+  alpha: Yup.number()
+    .required("Required")
+    .min(0, "Must be greater than 0")
+    .max(1, "Must be less than 1"),
+  beta: Yup.number()
+    .required("Required")
+    .min(0, "Must be greater than 0")
+    .max(1, "Must be less than 1"),
+  batchSize: Yup.number()
+    .required("Required")
+    .integer("Must be an integer")
+    .positive("Must be positive"),
+  epochs: Yup.number()
+    .required("Required")
+    .integer("Must be an integer")
+    .positive("Must be positive"),
+  startDate: Yup.date()
+    .required("Required")
+    .max(Yup.ref("endDate"), "Start date must be before end date"),
+  endDate: Yup.date()
+    .required("Required")
+    .min(Yup.ref("startDate"), "End date must be after start date"),
+  rebalanceWindow: Yup.number()
+    .required("Required")
+    .integer("Must be an integer"),
+  principle: Yup.number().required("Required"),
+  stocks: Yup.array().min(2, "Select at least two stocks").required("Required"),
 });
 
 export const ConfigPage = memo(() => {
@@ -77,7 +98,7 @@ export const ConfigPage = memo(() => {
         type: "number",
       },
       {
-        label: "batchSize",
+        label: "batch size",
         name: "batchSize",
         initValue: 8,
         type: "number",
@@ -89,16 +110,28 @@ export const ConfigPage = memo(() => {
         type: "number",
       },
       {
-        label: "startDate",
+        label: "start date",
         name: "startDate",
         initValue: dayjs(),
         type: "date",
       },
       {
-        label: "endDate",
+        label: "end date",
         name: "endDate",
         initValue: dayjs(),
         type: "date",
+      },
+      {
+        label: "rebalancew window",
+        name: "rebalanceWindow",
+        initValue: 10,
+        type: "number",
+      },
+      {
+        label: "principle",
+        name: "principle",
+        initValue: 10000,
+        type: "number",
       },
       {
         label: "dummy",
@@ -127,13 +160,15 @@ export const ConfigPage = memo(() => {
   );
   const formik = useFormik({
     initialValues,
-    // validationSchema,
+    validationSchema,
     onSubmit: (values) => {
+      values = { ...values };
       values.startDate = values.startDate.format("YYYY-MM-DD");
       values.endDate = values.endDate.format("YYYY-MM-DD");
       console.log(values);
     },
   });
+  console.log(formik.errors);
 
   return (
     <StyledBox>

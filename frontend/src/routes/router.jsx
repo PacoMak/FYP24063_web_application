@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { ROUTES } from "../constants";
 import { BasePage, ConfigPage, DashboardPage } from "../pages";
 
@@ -18,6 +18,10 @@ export const routes = [
         <ConfigPage />
       </BasePage>
     ),
+  },
+  {
+    path: "*",
+    element: <Navigate to={ROUTES.Dashboard.path} replace />,
   },
 ];
 export const router = createBrowserRouter(routes);
