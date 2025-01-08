@@ -34,7 +34,8 @@
 ## example url
 ### get stocks data
 ```bash
-    http://127.0.0.1:5000/stockList?tickers=MSFT&tickers=AAPL
-    http://127.0.0.1:5000/stock?ticker=MSFT
+    http://127.0.0.1:5000/stocks/history?tickers=MSFT&tickers=AAPL
+    http://127.0.0.1:5000/stock/history?ticker=MSFT
+    http://127.0.0.1:5000/stock/info?ticker=MSFT
 ```
 

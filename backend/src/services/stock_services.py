@@ -1,7 +1,6 @@
 import yfinance as yf
 import time
 
-supportStock = ["MSFT", "AAPL", "GOOG", "MMM", "GS", "NKE", "AXP", "HON", "CRM", "JPM"]
 interval_mapper = {
     60: "1m",
     120: "2m",
@@ -17,7 +16,7 @@ interval_mapper = {
 PERIOD = "5y"
 
 
-def getStocksData(tickers_list, interval=86400):
+def get_stocks_data(tickers_list, interval=86400):
     tickers = yf.Tickers(" ".join(tickers_list))
     data = {}
     for ticker in tickers_list:
@@ -29,7 +28,7 @@ def getStocksData(tickers_list, interval=86400):
     return data
 
 
-def getStockData(ticker, interval=86400):
+def get_stock_data(ticker, interval=86400):
     ticker = yf.Ticker(ticker)
     hist = ticker.history(period=PERIOD, interval=interval_mapper[interval])
     return hist.to_json(orient="records", lines=False)
@@ -51,7 +50,14 @@ def get_stock_stream(tickers_list, interval=86400):
         time.sleep(interval)
 
 
+def get_stock_info(ticker):
+    ticker = yf.Ticker(ticker)
+    return ticker.info
+
+
 if __name__ == "__main__":
-    tickers = supportStock
-    for data in get_stock_stream(tickers):
-        print(data)
+    # tickers = ["MSFT", "AAPL", "GOOG", "MMM", "GS", "NKE", "AXP", "HON", "CRM", "JPM"]
+    # for data in get_stock_stream(tickers):
+    #     print(data)
+    spy = yf.Ticker("AAPL")
+    print(spy.info)
