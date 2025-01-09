@@ -37,19 +37,27 @@ def get_stock_history():
         return Response(response="internal error", status=501)
 
 
+@stock.route("/stocks/info", methods=["GET"])
+def get_stocks_info():
+    try:
+        tickers_list = request.args.getlist("tickers")
+        if not tickers_list:
+            return Response(status="401")
+        stocks_info = stock_services.get_stocks_info(tickers_list)
+        return Response(
+            response=json.dumps(stocks_info), status=200, mimetype="application/json"
+        )
+    except:
+        return Response(response="internal error", status=501)
+
+
 @stock.route("/stock/info", methods=["GET"])
 def get_stock_info():
     try:
-        print(1)
         ticker = request.args.get("ticker")
-        print(2)
         if not ticker:
             return Response(status="401")
-
-        print(3)
-        print(ticker)
         stock_info = stock_services.get_stock_info(ticker)
-        print(4)
 
         return Response(
             response=json.dumps(

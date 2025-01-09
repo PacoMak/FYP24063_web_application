@@ -2,7 +2,8 @@ import { Box, Card, Typography } from "@mui/material";
 import { memo } from "react";
 import styled from "styled-components";
 import { PortfolioValueChart, StockPriceTable } from "./components";
-import { Loading, Spinner } from "../../components";
+import { Loading } from "../../components";
+import { useStocksHistory } from "../../api";
 
 const Wrapper = styled(Box)`
   display: flex;
@@ -17,23 +18,8 @@ const Left = styled(Box)`
 const Right = styled(Box)`
   flex: 1;
 `;
-const isLoading = false;
-export const DashboardPage = memo(() => {
-  if (isLoading) {
-    return (
-      <Box
-        sx={{
-          height: "90%",
-          width: "100%",
 
-          display: "grid",
-          placeItems: "center",
-        }}
-      >
-        <Loading />
-      </Box>
-    );
-  }
+export const DashboardPage = memo(() => {
   return (
     <Wrapper>
       <Left>

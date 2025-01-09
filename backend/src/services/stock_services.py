@@ -34,6 +34,14 @@ def get_stock_data(ticker, interval=86400):
     return hist.to_json(orient="records", lines=False)
 
 
+def get_stocks_info(tickers_list):
+    tickers = yf.Tickers(" ".join(tickers_list))
+    data = {}
+    for ticker in tickers_list:
+        data[ticker] = tickers.tickers[ticker].info
+    return data
+
+
 # for latest data
 def get_stock_stream(tickers_list, interval=86400):
     while True:
