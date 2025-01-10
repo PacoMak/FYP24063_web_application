@@ -8,9 +8,8 @@ import shutil
 
 
 def train_dppg(assets, rebalance_window, tx_fee_per_share, principal, num_epoch):
-    if not os.path.isdir("saved_model"):
-        os.makedirs("saved_model")
-
+    if os.path.exists("trained_models"):
+        shutil.rmtree("trained_models")
     env = TradingSimulator(
         principal=principal,
         assets=assets,
