@@ -27,19 +27,6 @@ class Agent(object):
         self.batch_size = batch_size
         self.alpha = alpha
         self.beta = beta
-        # self.actor = ActorNetwork(alpha, input_dims, layer1_size,
-        #                           layer2_size, n_actions=n_actions,
-        #                           name='Actor')
-        # self.critic = CriticNetwork(beta, input_dims, layer1_size,
-        #                             layer2_size, n_actions=n_actions,
-        #                             name='Critic')
-
-        # self.target_actor = ActorNetwork(alpha, input_dims, layer1_size,
-        #                                  layer2_size, n_actions=n_actions,
-        #                                  name='TargetActor')
-        # self.target_critic = CriticNetwork(beta, input_dims, layer1_size,
-        #                                    layer2_size, n_actions=n_actions,
-        #                                    name='TargetCritic')
 
         self.actor = ActorNetwork(
             learning_rate=alpha, n_actions=n_actions, name="Actor"
@@ -207,17 +194,17 @@ class Agent(object):
         input()
         """
 
-    def save_models(self):
-        self.actor.save_checkpoint()
-        self.target_actor.save_checkpoint()
-        self.critic.save_checkpoint()
-        self.target_critic.save_checkpoint()
+    def save_models(self, dir_path):
+        self.actor.save_checkpoint(dir_path)
+        self.target_actor.save_checkpoint(dir_path)
+        self.critic.save_checkpoint(dir_path)
+        self.target_critic.save_checkpoint(dir_path)
 
-    def load_models(self):
-        self.actor.load_checkpoint()
-        self.target_actor.load_checkpoint()
-        self.critic.load_checkpoint()
-        self.target_critic.load_checkpoint()
+    def load_models(self, dir_path):
+        self.actor.load_checkpoint(dir_path)
+        self.target_actor.load_checkpoint(dir_path)
+        self.critic.load_checkpoint(dir_path)
+        self.target_critic.load_checkpoint(dir_path)
 
     def check_actor_params(self):
         current_actor_params = self.actor.named_parameters()

@@ -4,6 +4,7 @@ from .env import TradingSimulator
 import matplotlib.pyplot as plt
 import os
 import json
+import shutil
 
 
 def train_dppg(assets, rebalance_window, tx_fee_per_share, principal, num_epoch):
@@ -54,14 +55,27 @@ def train_dppg(assets, rebalance_window, tx_fee_per_share, principal, num_epoch)
 
         # Save models every 25 epochs
         if i % 25 == 0:
-            agent.save_models()
-
+            agent.save_models("trainning_models/")
+            parameters = {
+                "assets": assets,
+                "rebalance_window": rebalance_window,
+                "tx_fee_per_share": tx_fee_per_share,
+                "principal": principal,
+                "num_epoch": num_epoch,
+                "alpha": agent.alpha,
+                "beta": agent.beta,
+                "tau": agent.tau,
+                "batch_size": agent.batch_size,
+                "current_epoch": i,
+            }
+            with open("trainning_models/parameters.json", "w") as f:
+                json.dump(parameters, f, indent=4)
         print(
             f"------Episode {i+1} Summary: Score {score:.2f}; Sharpe Ratio {sharpe_ratio:.5f}; Trailing 100 games avg {np.mean(score_history[-100:]):.3f} ------"
         )
 
     # Save the final models
-    agent.save_models()
+    agent.save_models("trained_models/")
 
     # Save the parameters to a JSON file
     parameters = {
@@ -76,9 +90,10 @@ def train_dppg(assets, rebalance_window, tx_fee_per_share, principal, num_epoch)
         "batch_size": agent.batch_size,
     }
 
-    with open("saved_model/parameters.json", "w") as f:
+    with open("trained_models/parameters.json", "w") as f:
         json.dump(parameters, f, indent=4)
 
+    shutil.rmtree("trainning_models")
     # Generating evaluation graphs
     if not os.path.isdir("evaluation"):
         os.makedirs("evaluation")
@@ -105,7 +120,7 @@ def evaluate_model(score_history, sharpe_ratio_history, num_epoch):
         "total_return": score_history,
         "sharpe_ratio": sharpe_ratio_history,
     }
-    with open("saved_model/evaluation.json", "w") as f:
+    with open("trained_models/evaluation.json", "w") as f:
         json.dump(evaluation, f, indent=4)
 
 

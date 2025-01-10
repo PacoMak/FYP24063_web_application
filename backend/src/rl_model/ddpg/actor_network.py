@@ -16,7 +16,7 @@ class ActorNetwork(nn.Module):
         self.tucker_dimension = [8, 2, 6, 2]
         self.n_actions = n_actions
         self.relu = nn.ReLU()
-        self.file_path = os.path.join("saved_model", f"{name}_ddpg")
+        self.file_name = f"{name}_ddpg"
 
         self.conv3d = nn.Conv3d(in_channels=4, out_channels=32, kernel_size=(1, 3, 1))
         self.fc = nn.Linear(
@@ -40,14 +40,14 @@ class ActorNetwork(nn.Module):
         x = x / x.sum()
         return x
 
-    def save_checkpoint(self):
-        os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+    def save_checkpoint(self, dir_path):
+        os.makedirs(dir_path, exist_ok=True)
         print("... saving checkpoint ...")
-        T.save(self.state_dict(), self.file_path)
+        T.save(self.state_dict(), os.path.join(dir_path, self.file_name))
 
-    def load_checkpoint(self):
+    def load_checkpoint(self, dir_path):
         print("... loading checkpoint ...")
-        self.load_state_dict(T.load(self.file_path))
+        self.load_state_dict(T.load(os.path.join(dir_path, self.file_name)))
 
 
 # for testing only
