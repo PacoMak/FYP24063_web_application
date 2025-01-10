@@ -34,8 +34,12 @@ Or look for customized installation command in https://pytorch.org/
     http://127.0.0.1:5000/stocks/history?tickers=MSFT&tickers=AAPL
     http://127.0.0.1:5000/stock/history?ticker=MSFT
     http://127.0.0.1:5000/stock/info?ticker=MSFT
+    http://127.0.0.1:5000/portfolio
 ```
-
+## 6. run the model directly
+```
+    python -m src.rl_model.train_ddpg
+```
 # Updating the dependencies
 Update the dependency list after you installed new packages through pip using the `deps_update.bat` script \
 While in the virtual environment, run:
