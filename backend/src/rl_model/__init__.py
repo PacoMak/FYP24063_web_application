@@ -1,3 +1,3 @@
-from .train_ddpg import train_dppg
+from .train_ddpg import train
 
-__all__ = ["train_dppg"]
+__all__ = ["train"]

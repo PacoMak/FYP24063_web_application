@@ -38,7 +38,7 @@ export const DashboardPage = memo(() => {
           <StockPriceTable />
         </Box>
       </Left>
-      <Right>asd</Right>
+      <Right></Right>
     </Wrapper>
   );
 });

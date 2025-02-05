@@ -13,7 +13,7 @@ export const AppBar = memo(({ drawerWidth }) => {
     <StyledAppBar position="fixed" $drawerWidth={drawerWidth}>
       <Toolbar>
         <Typography variant="h6" noWrap component="div">
-          Portfolio Management With Technical Analysis Using Reinfrocement
+          Portfolio Management With Technical Analysis Using Reinforcement
           Learning
         </Typography>
       </Toolbar>
