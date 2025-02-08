@@ -1,34 +1,50 @@
 from flask import Blueprint, Response, json, request
-from ..rl_model import train_dppg
+from ..rl_model import train
 import threading
 import os
+from ..services import ModelService, ModelStatus
 
 portfolio = Blueprint("portfolio", __name__)
+model_service = ModelService()
 
 
 @portfolio.route("/portfolio", methods=["POST"])
 def train_portfolio():
     try:
+        body = request.get_json(force=True)
         # Start the training in a separate thread
-        assets = [
-            "FUTU",
-            "NVDA",
-        ]
-        rebalance_window = 10
-        tx_fee_per_share = 0.005
-        principal = 1000000
-        num_epoch = 5
-        training_thread = threading.Thread(
-            target=train_dppg,
-            kwargs={
-                "assets": assets,
-                "rebalance_window": rebalance_window,
-                "tx_fee_per_share": tx_fee_per_share,
-                "principal": principal,
-                "num_epoch": num_epoch,
-            },
+        assets = body.get(
+            "assets",
+            [
+                "FUTU",
+                "NVDA",
+            ],
         )
-        training_thread.start()
+        rebalance_window = body.get("rebalance_window", 10)
+        tx_fee_per_share = body.get("tx_fee_per_share", 0.005)
+        principal = body.get("principal", 1000000)
+        num_epoch = body.get("num_epoch", 5)
+        start_date = body.get("start_date", "2020-07-01")
+        end_date = body.get("end_date", "2024-07-31")
+        alpha = body.get("alpha", 0.0005)
+        beta = body.get("beta", 0.0025)
+        gamma = body.get("gamma", 0.99)
+        tau = body.get("tau", 0.09)
+        batch_size = body.get("batch_size", 128)
+        model_service.train_model(
+            assets=assets,
+            rebalance_window=rebalance_window,
+            tx_fee_per_share=tx_fee_per_share,
+            principal=principal,
+            num_epoch=num_epoch,
+            start_date=start_date,
+            end_date=end_date,
+            alpha=alpha,
+            beta=beta,
+            gamma=gamma,
+            tau=tau,
+            batch_size=batch_size,
+        )
         return Response(response="Training started", status=200)
     except Exception as e:
         return Response(response=f"Internal error: {e}", status=501)
@@ -37,21 +53,23 @@ def train_portfolio():
 @portfolio.route("/portfolio", methods=["GET"])
 def get_portfolio():
     try:
-        if os.path.exists("trainning_models"):
-            return Response(response="model is training", status=200)
-        elif os.path.exists("trained_models"):
-            evaluation_file = os.path.join("trained_models", "evaluation.json")
-            if os.path.exists(evaluation_file):
-                with open(evaluation_file, "r") as f:
-                    evaluation_data = json.load(f)
-                return Response(
-                    response=json.dumps(evaluation_data),
-                    status=200,
-                    mimetype="application/json",
-                )
-            else:
-                return Response(response="evaluation.json not found", status=404)
-        else:
-            return Response(response="no model is trained", status=200)
+        model_status = model_service.model_status()
+        print(model_status)
+        print(model_status == ModelStatus.TRAINING)
+        if model_status == ModelStatus.TRAINING:
+            return Response(response="model is still training", status=400)
+        if model_status == ModelStatus.NOT_TRAINED:
+            return Response(response="no model is trained", status=400)
+        data = model_service.get_return_over_epoch_json()
+        return Response(response=json.dumps(data), status=200)
+    except Exception as e:
+        return Response(response=f"Internal error: {e}", status=501)
+
+
+@portfolio.route("/portfolio/status", methods=["GET"])
+def get_portfolio_status():
+    try:
+        model_status = model_service.model_status()
+        return Response(response=str(model_status), status=200)
     except Exception as e:
         return Response(response=f"Internal error: {e}", status=501)
