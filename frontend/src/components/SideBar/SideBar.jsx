@@ -47,7 +47,7 @@ export const SideBar = memo(({ drawerWidth }) => {
   return (
     <StyledDrawer variant="permanent" anchor="left" $drawerWidth={drawerWidth}>
       <Toolbar>
-        <HKUlogo src={HKULogo} alt="HKU Logo" />
+        {/* <HKUlogo src={HKULogo} alt="HKU Logo" /> */}
       </Toolbar>
 
       <Divider />

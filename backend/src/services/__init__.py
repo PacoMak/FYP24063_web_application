@@ -1,8 +1,4 @@
-from .stock_services import (
-    get_stocks_data,
-    get_stock_data,
-    get_stock_info,
-    get_stocks_info,
-)
+from .stock_services import StockService
+from .model_service import ModelService, ModelStatus
 
-__all__ = ["get_stocks_data", "get_stock_data", "get_stock_info", "get_stocks_info"]
+__all__ = ["StockService", "ModelService", "ModelStatus"]
