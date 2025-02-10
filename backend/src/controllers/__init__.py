@@ -1,4 +1,4 @@
 from .stock import stock
-from .portfolio import portfolio
+from .model import model
 
-__all__ = ["stock", "portfolio"]
+__all__ = ["stock", "model"]

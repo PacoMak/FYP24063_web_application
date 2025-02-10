@@ -69,12 +69,10 @@ TRAINED_TARGET_CRITIC_FILEPATH = f"{TRAINED_MODELS_DIR}/target_critic_ddpg"
 def train(agent, env, num_epoch):
 
     is_training_mode = True
-    # Evaluation metrics
     return_history = {"ddpg": []}
     sharpe_ratio_history = {"ddpg": []}
     actor_loss_history = {"ddpg": []}
     critic_loss_history = {"ddpg": []}
-
     np.random.seed(0)
 
     print("--------------------DDPG Training--------------------")
@@ -184,18 +182,18 @@ def train(agent, env, num_epoch):
     return
 
 
-def test(agent, env):
+def test(agent, env, assets):
     is_training_mode = False
-    testing_mode = {
-        "ddpg": 1,
-        "uniform_with_rebalance": 1,
-        "uniform_without_rebalance": 1,
-        "basic_MPT": 0,
-    }
     return_history = {}
-    sharpe_ratio_history = {}
-
-    if testing_mode["ddpg"]:
+    modes = [
+        "ddpg",
+        "uniform_with_rebalance",
+        "uniform_without_rebalance",
+        # "basic_MPT",
+    ]
+    print(modes)
+    if "ddpg" in modes:
+        print("GG")
         agent.load_models(
             actor_path=TRAINED_ACTOR_FILEPATH,
             target_actor_path=TRAINED_TARGET_ACTOR_FILEPATH,
@@ -212,6 +210,7 @@ def test(agent, env):
             action = agent.choose_action(observation, is_training_mode)
             new_state, reward, done = env.step(action)
             total_return += reward
+            print(reward)
             observation = new_state
             return_history["ddpg"].append(total_return)
         sharpe_ratio = env.sharpe_ratio()
@@ -220,17 +219,17 @@ def test(agent, env):
             f"------Portfolio Value {portfolio_value:.2f}; Total Return {total_return:.2f}; Sharpe Ratio {sharpe_ratio:.5f};------\n"
         )
 
-    if testing_mode["uniform_with_rebalance"]:
+    if "uniform_with_rebalance" in modes:
         return_history["uniform_with_rebalance"] = uniform_with_rebalance_test(
             env, assets
         )
 
-    if testing_mode["uniform_without_rebalance"]:
+    if "uniform_without_rebalance" in modes:
         return_history["uniform_without_rebalance"] = uniform_without_rebalance_test(
             env, assets
         )
 
-    # if testing_mode["basic_MPT"] == 1:
+    # if modes["basic_MPT"] == 1:
     #     return_history["basic_MPT"] = basic_mpt_test(env, assets, rebalance_window)
     plot_graph(
         title="Cumulative return over time",
@@ -242,6 +241,7 @@ def test(agent, env):
     )
     with open(TRAINED_MODELS_RETURN_OVER_TIME_JSON_FILEPATH, "w") as f:
         json.dump(return_history, f)
+    return
 
 
 if __name__ == "__main__":
@@ -276,7 +276,7 @@ if __name__ == "__main__":
         critic_path=TRAINED_CRITIC_FILEPATH,
         target_critic_path=TRAINED_TARGET_CRITIC_FILEPATH,
     )
-    TRAINING_env = TradingSimulator(
+    training_env = TradingSimulator(
         principal=principal,
         assets=assets,
         start_date="2009-01-01",
@@ -293,5 +293,6 @@ if __name__ == "__main__":
         rebalance_window=rebalance_window,
         tx_fee_per_share=tx_fee_per_share,
     )
-    train(agent=agent, env=TRAINING_env, num_epoch=num_epoch)
-    test(agent=agent, env=TRAINING_env)
+
+    train(agent=agent, env=training_env, num_epoch=num_epoch)
+    test(agent=agent, env=test_env, assets=assets)
