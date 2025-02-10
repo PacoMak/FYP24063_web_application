@@ -3,5 +3,5 @@ __pycache__/
 *.pyc
 .vscode/
 trained_models/
-trainning_models/
+training_models/
 evaluation/
