@@ -22,6 +22,7 @@ class Agent(object):
         n_actions,
         max_size=100000,
         batch_size=64,
+        device="cpu",
     ):
         self.gamma = gamma
         self.tau = tau
@@ -35,12 +36,14 @@ class Agent(object):
             fc1_dims=256,
             fc2_dims=128,
             fc3_dims=64,
+            device=device,
         )
 
         self.critic = CriticNetwork(
             learning_rate=beta,
             n_actions=n_actions,
             lstm_size=100,
+            device=device,
         )
 
         self.target_actor = ActorNetwork(
@@ -49,12 +52,14 @@ class Agent(object):
             fc1_dims=256,
             fc2_dims=128,
             fc3_dims=64,
+            device=device,
         )
 
         self.target_critic = CriticNetwork(
             learning_rate=beta,
             n_actions=n_actions,
             lstm_size=100,
+            device=device,
         )
 
         self.noise = OUActionNoise(mu=np.zeros(n_actions), sigma=0.3, theta=0.2)

@@ -34,7 +34,6 @@ class TradingSimulator:
             )
             # Assign the new MultiIndex to the DataFrame
             self.data.columns = multi_index_columns
-
         returns_list = []
         # Loop through each stock ticker and calculate returns
         for stock in assets:

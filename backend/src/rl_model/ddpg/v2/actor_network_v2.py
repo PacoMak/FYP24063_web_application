@@ -9,7 +9,7 @@ import numpy as np
 # Actor / Policy Network / mu
 # decide what to do based on the current state, outputs action values
 class ActorNetwork(nn.Module):
-    def __init__(self, learning_rate, n_actions, fc1_dims, fc2_dims, fc3_dims):
+    def __init__(self, learning_rate, n_actions, fc1_dims, fc2_dims, fc3_dims, device):
         super(ActorNetwork, self).__init__()
         self.n_actions = n_actions
         self.input_size = (n_actions - 1) * 4 + n_actions + 1
@@ -38,7 +38,7 @@ class ActorNetwork(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
 
-        self.device = T.device("cuda:0" if T.cuda.is_available() else "cpu")
+        self.device = device
         self.to(self.device)
 
     def forward(self, x):

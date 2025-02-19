@@ -10,6 +10,7 @@ from .baseline import (
 )
 from ..utils import plot_graph
 import time
+import torch as T
 
 # File paths
 SAVED_MODELS_DIR = "saved_models"
@@ -249,6 +250,8 @@ if __name__ == "__main__":
         os.makedirs(SAVED_MODEL_EVALUATION_DIR.format(id=temp_model_id))
     if not os.path.isdir(SAVED_MODEL_GRAPH_DIR.format(id=temp_model_id)):
         os.makedirs(SAVED_MODEL_GRAPH_DIR.format(id=temp_model_id))
+
+    device = "cuda:0" if T.cuda.is_available() else "cpu"
     agent = Agent(
         alpha=0.0005,
         beta=0.0025,
@@ -257,6 +260,7 @@ if __name__ == "__main__":
         input_dims=[len(assets) * 5 + 2],
         batch_size=128,
         n_actions=len(assets) + 1,
+        device=device,
     )
     agent.save_models(
         actor_path=SAVED_MODEL_ACTOR_FILEPATH.format(id=temp_model_id),
@@ -284,5 +288,5 @@ if __name__ == "__main__":
     start_time = time.time()
     train(agent=agent, env=training_env, num_epoch=num_epoch, model_id=temp_model_id)
     end_time = time.time()
-    print(f"Training time: {end_time - start_time} seconds")
+    print(f"{device} Training time: {end_time - start_time} seconds")
     test(agent=agent, env=test_env, assets=assets, model_id=temp_model_id)
