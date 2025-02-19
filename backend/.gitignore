@@ -2,6 +2,5 @@ __pycache__/
 .venv
 *.pyc
 .vscode/
-trained_models/
-training_models/
+saved_models/
 evaluation/
