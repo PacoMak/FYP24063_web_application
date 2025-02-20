@@ -9,6 +9,8 @@ import { theme } from "./theme";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { OverlayProvider } from "./context";
+import { Spinner } from "./components";
 
 const MuiTheme = createMuiTheme({
   typography: {
@@ -24,9 +26,11 @@ function App() {
     <QueryClientProvider client={quertyClient}>
       <ThemeProvider theme={theme}>
         <MuiThemeProvider theme={MuiTheme}>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <RouterProvider router={router} />
-          </LocalizationProvider>
+          <OverlayProvider spinnerComponent={Spinner}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <RouterProvider router={router} />
+            </LocalizationProvider>
+          </OverlayProvider>
         </MuiThemeProvider>
       </ThemeProvider>
     </QueryClientProvider>

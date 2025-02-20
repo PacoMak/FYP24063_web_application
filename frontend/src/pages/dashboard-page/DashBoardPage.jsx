@@ -1,9 +1,10 @@
-import { Box, Card, Typography } from "@mui/material";
+import { Box, Button, Card, Typography } from "@mui/material";
 import { memo } from "react";
 import styled from "styled-components";
 import { PortfolioValueChart, StockPriceTable } from "./components";
 import { Loading } from "../../components";
 import { useStocksHistory } from "../../api";
+import { useOverlay } from "../../context";
 
 const Wrapper = styled(Box)`
   display: flex;
