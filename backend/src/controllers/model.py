@@ -1,5 +1,6 @@
 from flask import Blueprint, Response, json, request
-from ..services import ModelService, ModelStatus
+from ..services import ModelService
+from ..errors import FileNotFoundException
 
 model = Blueprint("model", __name__)
 model_service = ModelService()
@@ -11,12 +12,9 @@ def train_model():
         body = request.get_json(force=True)
         assets = body.get(
             "assets",
-            [
-                "FUTU",
-                "NVDA",
-            ],
+            ["APA", "TSLA"],
         )
-        rebalance_window = body.get("rebalance_window", 10)
+        rebalance_window = body.get("rebalance_window", 1)
         tx_fee_per_share = body.get("tx_fee_per_share", 0.005)
         principal = body.get("principal", 1000000)
         num_epoch = body.get("num_epoch", 5)
@@ -46,64 +44,62 @@ def train_model():
         return Response(response=f"Internal error: {e}", status=501)
 
 
-@model.route("/model/status", methods=["GET"])
-def get_model_status():
+@model.route("/model/train/<model_id>", methods=["GET"])
+def get_model_train_metrics(model_id):
     try:
-        model_status = model_service.model_status()
-        return Response(response=str(model_status), status=200)
-    except Exception as e:
-        return Response(response=f"Internal error: {e}", status=501)
-
-
-@model.route("/model/train", methods=["GET"])
-def get_model_train_metrics():
-    try:
-        model_status = model_service.model_status()
-        if model_status == ModelStatus.TRAINING:
-            return Response(response="model is still training", status=400)
-        if model_status == ModelStatus.NOT_TRAINED:
-            return Response(response="no model is trained", status=400)
-        return_over_epoch = model_service.get_return_over_epoch_json()
-        sharpe_ratio_over_epoch = model_service.get_sharpe_ratio_over_epoch_json()
+        return_over_epoch = model_service.get_return_over_epoch_json(model_id)
+        sharpe_ratio_over_epoch = model_service.get_sharpe_ratio_over_epoch_json(
+            model_id
+        )
         response = {
-            "return_over_epoch": return_over_epoch["ddpg"],
-            "sharpe_ratio_over_epoch": sharpe_ratio_over_epoch["ddpg"],
+            "return_over_epoch": return_over_epoch,
+            "sharpe_ratio_over_epoch": sharpe_ratio_over_epoch,
         }
         return Response(response=json.dumps(response), status=200)
+    except FileNotFoundException as e:
+        return Response(response=f"File not found: {e}", status=e.status_code)
     except Exception as e:
         return Response(response=f"Internal error: {e}", status=501)
 
 
-@model.route("/model/test", methods=["GET"])
-def get_model_test_metrics():
+@model.route("/model/train/<model_id>/params", methods=["GET"])
+def get_model_train_params(model_id):
     try:
-        model_status = model_service.model_status()
-        if model_status == ModelStatus.TRAINING:
-            return Response(response="model is still training", status=400)
-        if model_status == ModelStatus.NOT_TRAINED:
-            return Response(response="no model is trained", status=400)
-        response = model_service.get_return_over_time_json()
-        return Response(response=json.dumps(response), status=200)
+        params = model_service.get_trainning_params(model_id)
+        return Response(response=json.dumps(params), status=200)
+    except FileNotFoundException as e:
+        return Response(response=f"File not found: {e}", status=e.status_code)
     except Exception as e:
         return Response(response=f"Internal error: {e}", status=501)
 
 
-@model.route("/model/test", methods=["POST"])
-def test_model():
+@model.route("/model/test/<model_id>", methods=["POST"])
+def test_model(model_id):
     try:
         body = request.get_json(force=True)
         start_date = body.get("start_date", "2020-07-01")
         end_date = body.get("end_date", "2024-07-31")
-        model_service.test_model(start_date, end_date)
+        model_service.test_model(start_date, end_date, model_id)
         return Response(response=json.dumps("testing started"), status=200)
     except Exception as e:
         return Response(response=f"Internal error: {e}", status=501)
 
 
-@model.route("/model/train/params", methods=["GET"])
-def get_model_train_params():
+@model.route("/model/test/<model_id>", methods=["GET"])
+def get_model_test_metrics(model_id):
     try:
-        params = model_service.get_trainning_params()
-        return Response(response=json.dumps(params), status=200)
+        response = model_service.get_return_over_time_json(model_id)
+        return Response(response=json.dumps(response), status=200)
+    except FileNotFoundException as e:
+        return Response(response=f"File not found: {e}", status=e.status_code)
+    except Exception as e:
+        return Response(response=f"Internal error: {e}", status=501)
+
+
+@model.route("/model", methods=["GET"])
+def get_models():
+    try:
+        response = model_service.get_models()
+        return Response(response=json.dumps(response), status=200)
     except Exception as e:
         return Response(response=f"Internal error: {e}", status=501)

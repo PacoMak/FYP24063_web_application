@@ -15,7 +15,7 @@ import torch as T
 # File paths
 SAVED_MODELS_DIR = "saved_models"
 SAVED_MODEL_DIR = f"{SAVED_MODELS_DIR}/{{id}}"
-
+SAVED_MODEL_PARAMS_FILEPATH = f"{SAVED_MODEL_DIR}/parameters.json"
 # For network
 SAVED_MODEL_NETWORKS_DIR = f"{SAVED_MODEL_DIR}/networks"
 SAVED_MODEL_ACTOR_FILEPATH = f"{SAVED_MODEL_NETWORKS_DIR}/actor_ddpg"
@@ -182,14 +182,10 @@ def test(agent, env, assets, model_id):
     print(modes)
     if "ddpg" in modes:
         agent.load_models(
-            actor_path=SAVED_MODEL_ACTOR_FILEPATH.format(id=temp_model_id),
-            target_actor_path=SAVED_MODEL_TARGET_ACTOR_FILEPATH.format(
-                id=temp_model_id
-            ),
-            critic_path=SAVED_MODEL_CRITIC_FILEPATH.format(id=temp_model_id),
-            target_critic_path=SAVED_MODEL_TARGET_CRITIC_FILEPATH.format(
-                id=temp_model_id
-            ),
+            actor_path=SAVED_MODEL_ACTOR_FILEPATH.format(id=model_id),
+            target_actor_path=SAVED_MODEL_TARGET_ACTOR_FILEPATH.format(id=model_id),
+            critic_path=SAVED_MODEL_CRITIC_FILEPATH.format(id=model_id),
+            target_critic_path=SAVED_MODEL_TARGET_CRITIC_FILEPATH.format(id=model_id),
         )
         np.random.seed(0)
         return_history["ddpg"] = []
@@ -241,6 +237,29 @@ if __name__ == "__main__":
     principal = 1000000
     num_epoch = 5
     temp_model_id = "20250217"
+    train_start_date = "2015-01-01"
+    train_end_date = "2017-12-31"
+    alpha = 0.0005
+    beta = 0.0025
+    gamma = 0.99
+    tau = 0.09
+    batch_size = 128
+    parameters = {
+        "assets": assets,
+        "rebalance_window": rebalance_window,
+        "tx_fee_per_share": tx_fee_per_share,
+        "principal": principal,
+        "num_epoch": num_epoch,
+        "start_date": train_start_date,
+        "end_date": train_end_date,
+        "alpha": alpha,
+        "beta": beta,
+        "gamma": gamma,
+        "tau": tau,
+        "batch_size": batch_size,
+    }
+    with open(f"{SAVED_MODEL_PARAMS_FILEPATH.format(id=temp_model_id)}", "w") as f:
+        json.dump(parameters, f, indent=4)
     if not os.path.isdir(SAVED_MODEL_DIR.format(id=temp_model_id)):
         os.makedirs(SAVED_MODEL_DIR.format(id=temp_model_id))
     if not os.path.isdir(SAVED_MODEL_NETWORKS_DIR.format(id=temp_model_id)):
@@ -271,8 +290,8 @@ if __name__ == "__main__":
     training_env = TradingSimulator(
         principal=principal,
         assets=assets,
-        start_date="2015-01-01",
-        end_date="2017-12-31",
+        start_date=train_start_date,
+        end_date=train_end_date,
         rebalance_window=rebalance_window,
         tx_fee_per_share=tx_fee_per_share,
     )
