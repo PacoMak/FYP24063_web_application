@@ -232,7 +232,7 @@ if __name__ == "__main__":
     rebalance_window = 1
     tx_fee_per_share = 0.005
     principal = 1000000
-    num_epoch = 2
+    num_epoch = 10
     temp_model_id = "20250217"
     train_start_date = "2015-01-01"
     train_end_date = "2017-12-31"
@@ -302,7 +302,7 @@ if __name__ == "__main__":
         tx_fee_per_share=tx_fee_per_share,
     )
     start_time = time.time()
-    # train(agent=agent, env=training_env, num_epoch=num_epoch, model_id=temp_model_id)
+    train(agent=agent, env=training_env, num_epoch=num_epoch, model_id=temp_model_id)
     end_time = time.time()
     print(f"{device} Training time: {end_time - start_time} seconds")
     test(agent=agent, env=test_env, assets=assets, model_id=temp_model_id)
