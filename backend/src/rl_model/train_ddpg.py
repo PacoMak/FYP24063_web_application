@@ -239,8 +239,17 @@ if __name__ == "__main__":
     rebalance_window = 1
     tx_fee_per_share = 0.005
     principal = 1000000
-    num_epoch = 5
+    num_epoch = 10
     temp_model_id = "20250217"
+    train_start_date = "2015-01-01"
+    train_end_date = "2017-12-31"
+    test_start_date = "2018-01-01"
+    test_end_date = "2024-12-31"
+    alpha = 0.0005
+    beta = 0.0025
+    gamma = 0.99
+    tau = 0.09
+    batch_size = 128
     if not os.path.isdir(SAVED_MODEL_DIR.format(id=temp_model_id)):
         os.makedirs(SAVED_MODEL_DIR.format(id=temp_model_id))
     if not os.path.isdir(SAVED_MODEL_NETWORKS_DIR.format(id=temp_model_id)):
@@ -251,14 +260,14 @@ if __name__ == "__main__":
     if not os.path.isdir(SAVED_MODEL_GRAPH_DIR.format(id=temp_model_id)):
         os.makedirs(SAVED_MODEL_GRAPH_DIR.format(id=temp_model_id))
 
-    device = "cuda:0" if T.cuda.is_available() else "cpu"
+    device = "cpu"
     agent = Agent(
-        alpha=0.0005,
-        beta=0.0025,
-        gamma=0.99,
-        tau=0.09,
+        alpha=alpha,
+        beta=beta,
+        gamma=gamma,
+        tau=tau,
         input_dims=[len(assets) * 5 + 2],
-        batch_size=128,
+        batch_size=batch_size,
         n_actions=len(assets) + 1,
         device=device,
     )
@@ -271,8 +280,8 @@ if __name__ == "__main__":
     training_env = TradingSimulator(
         principal=principal,
         assets=assets,
-        start_date="2015-01-01",
-        end_date="2017-12-31",
+        start_date=train_start_date,
+        end_date=train_end_date,
         rebalance_window=rebalance_window,
         tx_fee_per_share=tx_fee_per_share,
     )
@@ -280,8 +289,8 @@ if __name__ == "__main__":
     test_env = TradingSimulator(
         principal=principal,
         assets=assets,
-        start_date="2018-01-01",
-        end_date="2024-12-31",
+        start_date=test_start_date,
+        end_date=test_end_date,
         rebalance_window=rebalance_window,
         tx_fee_per_share=tx_fee_per_share,
     )
