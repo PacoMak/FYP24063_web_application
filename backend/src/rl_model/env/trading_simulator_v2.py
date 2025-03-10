@@ -5,6 +5,7 @@ import numpy as np
 import copy
 from datetime import datetime, timedelta
 from .asset import Asset
+import torch
 
 
 class TradingSimulator:
@@ -16,10 +17,18 @@ class TradingSimulator:
         end_date,
         rebalance_window,
         tx_fee_per_share,
+        device="cuda:0",
     ):
+        # Stays constant throughout epochs
+        self.principal = principal
+        self.assets = assets
+        self.rebalance_window = rebalance_window
+        self.tx_fee = tx_fee_per_share
+        self.device = device
+        self.assets2idx = {asset: idx for idx, asset in enumerate(self.assets)}
+
         compute_date = datetime.strptime(start_date, "%Y-%m-%d") - timedelta(days=10)
         compute_date = compute_date.strftime("%Y-%m-%d")
-
         self.data = yf.download(
             assets,
             start=compute_date,
@@ -27,6 +36,7 @@ class TradingSimulator:
             group_by="ticker",
             auto_adjust=True,
         )
+
         if len(assets) == 1:
             # Create a MultiIndex for the columns
             multi_index_columns = pd.MultiIndex.from_tuples(
@@ -86,17 +96,11 @@ class TradingSimulator:
             :, close_data.columns.get_level_values(1) == "Close"
         ]
         adj_close_data.columns = adj_close_data.columns.droplevel(1)
-        self.close_price = adj_close_data
+        self.close_price = torch.tensor(adj_close_data.values, device=self.device)
 
         rsi_data = close_data.loc[:, close_data.columns.get_level_values(1) == "RSI"]
         rsi_data.columns = rsi_data.columns.droplevel(1)
-        self.rsi = rsi_data
-
-        # Stays constant throughout epochs
-        self.principal = principal
-        self.assets = assets
-        self.rebalance_window = rebalance_window
-        self.tx_fee = tx_fee_per_share
+        self.rsi = torch.tensor(rsi_data.values, device=self.device)
 
     def __RSI(self, returns):
         if len(returns[returns > 0]) == 0:
@@ -108,6 +112,8 @@ class TradingSimulator:
         return 100 * (1 - 1 / (1 + avg_gain / avg_loss))
 
     def sharpe_ratio(self):
+        return 0
+
         def annual_return(yearly_return_history):
             start_value = yearly_return_history.iloc[0]
             end_value = yearly_return_history.iloc[-1]
@@ -192,7 +198,7 @@ class TradingSimulator:
                 name=stock,
                 value=0,
                 weighting=0,
-                price=self.close_price.iloc[0][stock],
+                price=self.close_price[0][self.assets2idx[stock]].detach(),
                 num_shares=0,
             )
             self.portfolio.append(portfolio_stock)
@@ -208,57 +214,52 @@ class TradingSimulator:
         self.portfolio.append(cash_asset)
 
         # Initial observation
-        curr_close_price = np.array(
-            [x for x in self.close_price.iloc[self.time]]
-        )  # Close price of each asset at t
-        prev_close_price = np.array(
-            [x for x in self.close_price.iloc[self.time - 1]]
-        )  # Close price of each asset at t-1
-        log_return = np.log(
-            np.divide(curr_close_price, prev_close_price)
+        curr_close_price = self.close_price[self.time]  # Close price of each asset at t
+        prev_close_price = self.close_price[
+            self.time - 1
+        ]  # Close price of each asset at t-1
+        log_return = torch.log(
+            torch.div(curr_close_price, prev_close_price)
         )  # Natural log of return
-        rsi = np.array(
-            [x for x in self.rsi.iloc[self.time]]
-        )  # RSI of each asset at time t
+        rsi = self.rsi[self.time]  # RSI of each asset at time t
         rsi = rsi / 100
-        holdings = [
-            asset.get_weighting() for asset in self.portfolio
-        ]  # Share and cash weightings
+        holdings = torch.tensor(
+            [asset.get_weighting() for asset in self.portfolio], device=self.device
+        )  # Share and cash weightings
         curr_close_price = (curr_close_price - curr_close_price.mean()) / (
             curr_close_price.std()
         )  # Normalize closing price
         prev_close_price = (prev_close_price - prev_close_price.mean()) / (
             prev_close_price.std()
         )
-
-        initial_input = np.concatenate(
+        initial_input = torch.cat(
             (
                 curr_close_price,
                 prev_close_price,
                 log_return,
                 rsi,
                 holdings,
-                [np.log(self.portfolio_value / self.principal)],
+                torch.log(
+                    torch.tensor(
+                        [self.portfolio_value / self.principal], device=self.device
+                    )
+                ),
             )
-        )
-
+        ).float()
         return initial_input
 
     def step(self, action):
         done = 0
         self.time += 1
         old_portfolio_value = self.portfolio_value
-        old_portfolio = copy.deepcopy(self.portfolio)
-
-        # print("Time step:", self.time)
-
+        old_portfolio_shares = [asset.get_num_shares() for asset in self.portfolio]
         # Compute the new portfolio value after 1 rebalance window
         # Price and value of a particular stock change in time = t+1, price of cash is unchanged
         new_value = 0
         for i in range(len(self.portfolio)):
             if self.portfolio[i].get_name() != "cash":
                 self.portfolio[i].set_price(
-                    self.close_price.iloc[self.time][self.assets[i]]
+                    self.close_price[self.time][self.assets2idx[self.assets[i]]]
                 )
             self.portfolio[i].set_value(
                 self.portfolio[i].get_price() * self.portfolio[i].get_num_shares()
@@ -285,10 +286,7 @@ class TradingSimulator:
         total_tx_cost = 0
         for i in range(len(self.portfolio) - 1):
             total_tx_cost += (
-                abs(
-                    self.portfolio[i].get_num_shares()
-                    - old_portfolio[i].get_num_shares()
-                )
+                abs(self.portfolio[i].get_num_shares() - old_portfolio_shares[i])
                 * self.tx_fee
             )
 
@@ -298,21 +296,16 @@ class TradingSimulator:
         reward = self.portfolio_value - old_portfolio_value - total_tx_cost
 
         # New states
-        curr_close_price = np.array(
-            [x for x in self.close_price.iloc[self.time]]
-        )  # Close price of each asset at t
-        prev_close_price = np.array(
-            [x for x in self.close_price.iloc[self.time - 1]]
-        )  # Close price of each asset at t-1
-        log_return = np.array(
-            np.log(np.divide(curr_close_price, prev_close_price))
-        )  # Natural log of return
-        rsi = np.array(
-            [x for x in self.rsi.iloc[self.time]]
-        )  # RSI of each asset at time t
+        curr_close_price = self.close_price[self.time]  # Close price of each asset at t
+        prev_close_price = self.close_price[
+            self.time - 1
+        ]  # Close price of each asset at t-1
+        log_return = torch.log(torch.div(curr_close_price, prev_close_price))  #
+        # Natural log of return
+        rsi = self.rsi[self.time]  # RSI of each asset at time t
         rsi = rsi / 100
-        holdings = np.array(
-            [asset.get_weighting() for asset in self.portfolio]
+        holdings = torch.tensor(
+            [asset.get_weighting() for asset in self.portfolio], device=self.device
         )  # Share and cash holdings
         curr_close_price = (curr_close_price - curr_close_price.mean()) / (
             curr_close_price.std()
@@ -321,16 +314,20 @@ class TradingSimulator:
             prev_close_price.std()
         )
 
-        new_state = np.concatenate(
+        new_state = torch.cat(
             (
                 curr_close_price,
                 prev_close_price,
                 log_return,
                 rsi,
                 holdings,
-                [np.log(self.portfolio_value / self.principal)],
+                torch.log(
+                    torch.tensor(
+                        [self.portfolio_value / self.principal], device=self.device
+                    )
+                ),
             )
-        )
+        ).float()
 
         if self.time == len(self.close_price) - 1:  # Indicate the end of the episode
             done = 1

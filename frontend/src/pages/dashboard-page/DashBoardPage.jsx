@@ -1,14 +1,16 @@
-import { Box, Button, Card, Typography } from "@mui/material";
-import { memo } from "react";
+import { Box, Card, Typography } from "@mui/material";
+import { memo, useState } from "react";
 import styled from "styled-components";
-import { PortfolioValueChart, StockPriceTable } from "./components";
-import { Loading } from "../../components";
-import { useStocksHistory } from "../../api";
-import { useOverlay } from "../../context";
+import {
+  ModelSelector,
+  PortfolioValueChart,
+  StockPriceTable,
+} from "./components";
 
 const Wrapper = styled(Box)`
   display: flex;
   gap: 5rem;
+  border: 1px solid blue;
 `;
 const Left = styled(Box)`
   flex: 1;
@@ -21,6 +23,16 @@ const Right = styled(Box)`
 `;
 
 export const DashboardPage = memo(() => {
+  const [selectedModel, setSelectedModel] = useState(null);
+  if (!selectedModel) {
+    return (
+      <ModelSelector
+        onSelect={(model_id) => {
+          setSelectedModel(model_id);
+        }}
+      />
+    );
+  }
   return (
     <Wrapper>
       <Left>

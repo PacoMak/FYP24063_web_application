@@ -72,13 +72,12 @@ def train(agent, env, num_epoch, model_id):
             total_critic_loss += critic_loss
             total_return += reward
             observation = new_state
-        return_history["ddpg"].append(total_return)
+        return_history["ddpg"].append(total_return.cpu().detach().numpy().tolist())
         sharpe_ratio = env.sharpe_ratio()
         sharpe_ratio_history["ddpg"].append(sharpe_ratio)
-        actor_loss_history["ddpg"].append(total_actor_loss)
-        critic_loss_history["ddpg"].append(total_critic_loss)
-
-        if i % 5 == 0:
+        actor_loss_history["ddpg"].append(total_actor_loss.cpu().detach().numpy())
+        critic_loss_history["ddpg"].append(total_critic_loss.cpu().detach().numpy())
+        if i % 1 == 0:
             agent.save_models(
                 actor_path=SAVED_MODEL_ACTOR_FILEPATH.format(id=model_id),
                 target_actor_path=SAVED_MODEL_TARGET_ACTOR_FILEPATH.format(id=model_id),
@@ -172,14 +171,13 @@ def train(agent, env, num_epoch, model_id):
 
 def test(agent, env, assets, model_id):
     is_training_mode = False
-    return_history = {}
+    return_history = {"ddpg": []}
     modes = [
         "ddpg",
         "uniform_with_rebalance",
         "uniform_without_rebalance",
         # "basic_MPT",
     ]
-    print(modes)
     if "ddpg" in modes:
         agent.load_models(
             actor_path=SAVED_MODEL_ACTOR_FILEPATH.format(id=model_id),
@@ -188,7 +186,6 @@ def test(agent, env, assets, model_id):
             target_critic_path=SAVED_MODEL_TARGET_CRITIC_FILEPATH.format(id=model_id),
         )
         np.random.seed(0)
-        return_history["ddpg"] = []
         print("--------------------DDPG--------------------")
         observation = env.restart()
         done = 0
@@ -198,7 +195,7 @@ def test(agent, env, assets, model_id):
             new_state, reward, done = env.step(action)
             total_return += reward
             observation = new_state
-            return_history["ddpg"].append(total_return)
+            return_history["ddpg"].append(total_return.cpu().detach().numpy().tolist())
         sharpe_ratio = env.sharpe_ratio()
         portfolio_value = env.total_portfolio_value()
         print(
@@ -235,7 +232,7 @@ if __name__ == "__main__":
     rebalance_window = 1
     tx_fee_per_share = 0.005
     principal = 1000000
-    num_epoch = 5
+    num_epoch = 2
     temp_model_id = "20250217"
     train_start_date = "2015-01-01"
     train_end_date = "2017-12-31"
@@ -305,7 +302,7 @@ if __name__ == "__main__":
         tx_fee_per_share=tx_fee_per_share,
     )
     start_time = time.time()
-    train(agent=agent, env=training_env, num_epoch=num_epoch, model_id=temp_model_id)
+    # train(agent=agent, env=training_env, num_epoch=num_epoch, model_id=temp_model_id)
     end_time = time.time()
     print(f"{device} Training time: {end_time - start_time} seconds")
     test(agent=agent, env=test_env, assets=assets, model_id=temp_model_id)

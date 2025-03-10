@@ -1,30 +1,40 @@
 import numpy as np
+import torch
 
 
 # Replay buffer stores previous experiences, sample a mini-batch at each time step to update the weights of the neural networks
 class ReplayBuffer(object):
-    def __init__(self, max_size, input_shape, n_actions):
+    def __init__(self, max_size, input_shape, n_actions, device="cuda:0"):
+        self.device = device
         self.mem_size = max_size
         self.mem_cntr = 0
-        self.old_input_tensor_memory = np.zeros((self.mem_size, *input_shape))
-        self.new_input_tensor_memory = np.zeros((self.mem_size, *input_shape))
-        self.action_memory = np.zeros((self.mem_size, n_actions))
-        self.reward_memory = np.zeros(self.mem_size)
-        self.terminal_memory = np.zeros(self.mem_size, dtype=np.float32)
+        self.old_input_tensor_memory = torch.zeros(
+            (self.mem_size, *input_shape), device=self.device
+        )
+        self.new_input_tensor_memory = torch.zeros(
+            (self.mem_size, *input_shape), device=self.device
+        )
+        self.action_memory = torch.zeros((self.mem_size, n_actions), device=self.device)
+        self.reward_memory = torch.zeros(self.mem_size, device=self.device)
+        self.terminal_memory = torch.zeros(self.mem_size, device=self.device)
 
-    def store_transition(self, old_input_tensor, action, reward, new_input_tensor, done):
+    def store_transition(
+        self, old_input_tensor, action, reward, new_input_tensor, done
+    ):
         index = self.mem_cntr % self.mem_size
         self.old_input_tensor_memory[index] = old_input_tensor
         self.new_input_tensor_memory[index] = new_input_tensor
         self.action_memory[index] = action
         self.reward_memory[index] = reward
-        self.terminal_memory[index] = 1 - done  # For bellman equation, to multiply whether or not the episode is over
+        self.terminal_memory[index] = (
+            1 - done
+        )  # For bellman equation, to multiply whether or not the episode is over
         self.mem_cntr += 1
 
     def sample_buffer(self, batch_size):
         max_mem = min(self.mem_cntr, self.mem_size)
 
-        batch = np.random.choice(max_mem, batch_size)
+        batch = torch.randint(0, max_mem, (batch_size,), device=self.device)
 
         old_input_tensor = self.old_input_tensor_memory[batch]
         actions = self.action_memory[batch]
@@ -34,7 +44,7 @@ class ReplayBuffer(object):
 
         return old_input_tensor, actions, rewards, new_input_tensor, terminal
 
-    # Remove and return all the samples in the buffer 
+    # Remove and return all the samples in the buffer
     def pop_buffer(self):
         batch = list(range(self.mem_cntr))
 

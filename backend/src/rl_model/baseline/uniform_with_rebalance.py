@@ -9,7 +9,7 @@ def uniform_with_rebalance_test(env, assets):
         action = [1 / (len(assets))] * (len(assets)) + [0]
         new_state, reward, done = env.step(action)
         total_return += reward
-        return_history.append(total_return)
+        return_history.append(total_return.cpu().detach().numpy().tolist())
     sharpe_ratio = env.sharpe_ratio()
     portfolio_value = env.total_portfolio_value()
     print(

@@ -11,6 +11,10 @@ const StyledBox = styled(Box)`
   box-sizing: border-box;
   background: ${({ theme }) => theme.colors.body.background};
   padding: 2rem 4rem;
+  border: 1px solid red;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 `;
 
 export const BasePage = memo(({ children }) => {

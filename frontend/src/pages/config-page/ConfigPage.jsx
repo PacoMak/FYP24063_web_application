@@ -168,7 +168,6 @@ export const ConfigPage = memo(() => {
       console.log(values);
     },
   });
-  console.log(formik.errors);
 
   return (
     <StyledBox>

@@ -72,8 +72,7 @@ class Agent(object):
 
     def choose_action(self, observation, is_training):
         self.actor.eval()
-        observation = T.tensor(observation, dtype=T.float).to(self.actor.device)
-        mu = self.actor.forward(observation).to(self.actor.device)
+        mu = self.actor.forward(observation)
         self.actor.train()
         # print("mu:", mu)
 
@@ -92,9 +91,13 @@ class Agent(object):
 
         mu = self.softmax(mu)  # Ensure actions sum to 1
 
-        return mu.cpu().detach().numpy()
+        return mu
 
     def remember(self, state, action, reward, new_state, done):
+        state = state.detach()
+        action = action.detach()
+        reward = reward.detach()
+        new_state = new_state.detach()
         self.memory.store_transition(state, action, reward, new_state, done)
 
     def learn(self):
@@ -109,11 +112,11 @@ class Agent(object):
         )
 
         # Change them to numpy arrays and will be used in critic network
-        reward = T.tensor(reward, dtype=T.float).to(self.critic.device)
-        done = T.tensor(done).to(self.critic.device)
-        new_states = T.tensor(new_states, dtype=T.float).to(self.critic.device)
-        action = T.tensor(action, dtype=T.float).to(self.critic.device)
-        states = T.tensor(states, dtype=T.float).to(self.critic.device)
+        # reward = T.tensor(reward, dtype=T.float).to(self.critic.device)
+        # done = T.tensor(done).to(self.critic.device)
+        # new_states = T.tensor(new_states, dtype=T.float).to(self.critic.device)
+        # action = T.tensor(action, dtype=T.float).to(self.critic.device)
+        # states = T.tensor(states, dtype=T.float).to(self.critic.device)
 
         # self.target_actor.eval()
         # self.target_critic.eval()
@@ -137,7 +140,7 @@ class Agent(object):
         # self.critic.train()
         self.critic.optimizer.zero_grad()
         critic_loss = F.mse_loss(critic_value, target)
-        cl = critic_loss.cpu().detach().numpy()
+        # cl = critic_loss.cpu().detach().numpy()
         critic_loss.backward()
         self.critic.optimizer.step()
 
@@ -148,13 +151,12 @@ class Agent(object):
         # self.actor.train()
         actor_loss = -self.critic.forward(states, mu)
         actor_loss = T.mean(actor_loss)
-        al = actor_loss.cpu().detach().numpy()
         actor_loss.backward()
         self.actor.optimizer.step()
 
         self.update_network_parameters(tau=self.tau)
 
-        return al, cl
+        return actor_loss, critic_loss
 
     def update_network_parameters(self, tau):
         actor_params = self.actor.named_parameters()
