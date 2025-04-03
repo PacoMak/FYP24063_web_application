@@ -1,0 +1,15 @@
+export const STOCKS_HISTORY = [
+  { name: "AAPL", open: 150, close: 155, high: 160, low: 148 },
+  { name: "GOOGL", open: 2800, close: 2825, high: 2850, low: 2780 },
+  { name: "MSFT", open: 300, close: 305, high: 310, low: 295 },
+  { name: "AMZN", open: 3400, close: 3420, high: 3450, low: 3380 },
+  { name: "TSLA", open: 700, close: 710, high: 720, low: 690 },
+  { name: "NFLX", open: 500, close: 505, high: 510, low: 495 },
+  { name: "FB", open: 350, close: 355, high: 360, low: 340 },
+  { name: "NVDA", open: 200, close: 205, high: 210, low: 195 },
+  { name: "DIS", open: 180, close: 185, high: 190, low: 175 },
+  { name: "PYPL", open: 250, close: 255, high: 260, low: 245 },
+  { name: "V", open: 220, close: 225, high: 230, low: 215 },
+  { name: "JNJ", open: 170, close: 175, high: 180, low: 165 },
+  { name: "WMT", open: 140, close: 145, high: 150, low: 135 },
+];

@@ -1,5 +1,4 @@
 import {
-  Box,
   Divider,
   List,
   ListItem,
@@ -12,7 +11,7 @@ import { memo, useMemo } from "react";
 import { ROUTES } from "../../constants";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import HKULogo from ".././../images/hku-logo.jpg";
+// import HKULogo from ".././../images/hku-logo.jpg";
 const StyledDrawer = styled(Drawer)`
   width: ${({ $drawerWidth }) => $drawerWidth}px;
   flex-shrink: 0;
@@ -26,15 +25,15 @@ const StyledDrawer = styled(Drawer)`
 const StyledListItemText = styled(ListItemText)`
   text-align: center;
 `;
-const HKUlogo = styled.img`
-  width: 100%;
-`;
+// const HKUlogo = styled.img`
+//   width: 100%;
+// `;
 export const SideBar = memo(({ drawerWidth }) => {
   const items = useMemo(
     () => [
       {
-        text: "Dashboard",
-        path: ROUTES.Dashboard.path,
+        text: "Models",
+        path: ROUTES.Models.path,
       },
       {
         text: "Config",
@@ -46,9 +45,7 @@ export const SideBar = memo(({ drawerWidth }) => {
   const navigate = useNavigate();
   return (
     <StyledDrawer variant="permanent" anchor="left" $drawerWidth={drawerWidth}>
-      <Toolbar>
-        {/* <HKUlogo src={HKULogo} alt="HKU Logo" /> */}
-      </Toolbar>
+      <Toolbar>{/* <HKUlogo src={HKULogo} alt="HKU Logo" /> */}</Toolbar>
 
       <Divider />
       <List>

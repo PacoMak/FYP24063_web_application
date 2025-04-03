@@ -10,7 +10,7 @@ const StyledAppBar = styled(MuiAppBar)`
 
 export const AppBar = memo(({ drawerWidth }) => {
   return (
-    <StyledAppBar position="fixed" $drawerWidth={drawerWidth}>
+    <StyledAppBar position="fixed" $drawerWidth={drawerWidth} elevation={0}>
       <Toolbar>
         <Typography variant="h6" noWrap component="div">
           Portfolio Management With Technical Analysis Using Reinforcement
@@ -20,3 +20,5 @@ export const AppBar = memo(({ drawerWidth }) => {
     </StyledAppBar>
   );
 });
+
+AppBar.displayName = "AppBar";

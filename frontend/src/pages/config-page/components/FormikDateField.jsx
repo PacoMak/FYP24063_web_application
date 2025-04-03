@@ -1,5 +1,4 @@
 import { DatePicker } from "@mui/x-date-pickers";
-import { TextField } from "@mui/material";
 import { memo } from "react";
 
 export const FormikDateField = memo(({ formik, name, label, ...props }) => {
@@ -7,7 +6,10 @@ export const FormikDateField = memo(({ formik, name, label, ...props }) => {
     <DatePicker
       label={label}
       name={name}
-      onChange={(value) => formik.setFieldValue(name, value, true)}
+      onChange={(value) => {
+        formik.setFieldValue(name, value, false);
+        formik.validateField(name);
+      }}
       value={formik.values[name]}
       slotProps={{
         textField: {
@@ -16,7 +18,7 @@ export const FormikDateField = memo(({ formik, name, label, ...props }) => {
         },
         FormHelperTextProps: {
           style: {
-            color: Boolean(formik.errors[name]) ? "red" : "inherit",
+            color: formik.errors[name] ? "red" : "inherit",
           },
         },
       }}

@@ -1,5 +1,4 @@
 import { Box, CssBaseline, Toolbar } from "@mui/material";
-import * as React from "react";
 import { memo } from "react";
 import { AppBar, SideBar } from "../../components";
 import styled from "styled-components";
@@ -10,7 +9,9 @@ const StyledBox = styled(Box)`
   overflow: auto;
   box-sizing: border-box;
   background: ${({ theme }) => theme.colors.body.background};
-  padding: 2rem 4rem;
+  padding: 1rem 2rem;
+  display: flex;
+  flex-direction: column;
 `;
 
 export const BasePage = memo(({ children }) => {

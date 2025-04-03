@@ -1,3 +1,4 @@
 export * from "./FormikTextField";
 export * from "./FormikDateField";
-export * from "./SelectStocksField";
+export * from "./TrainParamsForm";
+export * from "./SelectStockTable";

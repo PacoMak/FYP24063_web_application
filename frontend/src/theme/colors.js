@@ -8,8 +8,22 @@ export const colors = {
     color: "#505050",
   },
   body: {
-    background: "#f5f5f5",
+    background: "#f0f4f8",
     color: "#000000",
+  },
+  button: {
+    delete: {
+      background: "#d32f2f",
+      color: "#ffffff",
+    },
+    next: {
+      background: "#1976d2",
+      color: "#ffffff",
+    },
+    back: {
+      background: "#1976d2",
+      color: "#ffffff",
+    },
   },
   stockPriceTable: {
     heading: {
@@ -27,6 +41,27 @@ export const colors = {
       thumb: "#888",
       thumbHover: "#555",
       border: "#f1f1f1",
+    },
+  },
+  table: {
+    header: {
+      background: "#34568B",
+      color: "#ffffff",
+    },
+    body: {
+      background: "#ffffff",
+      color: "#000000",
+      hover: {
+        background: "#dbe7f1",
+        color: "#000000",
+      },
+    },
+    pagination: {
+      background: "#ffffff",
+      color: "#000000",
+    },
+    button: {
+      color: "#888",
     },
   },
 };

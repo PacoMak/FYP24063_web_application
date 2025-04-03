@@ -1,28 +1,10 @@
-import React, { memo, useMemo } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Card,
-} from "@mui/material";
+import { memo, useMemo, useState } from "react";
 import styled from "styled-components";
-import { useStocksHistory } from "../../../api";
+import { Table } from "../../../components";
 
-const stockData = [
-  { name: "AAPL", open: 150, close: 155, high: 160, low: 148 },
-  { name: "GOOGL", open: 2800, close: 2825, high: 2850, low: 2780 },
-  { name: "MSFT", open: 300, close: 305, high: 310, low: 295 },
-  { name: "AMZN", open: 3400, close: 3420, high: 3450, low: 3380 },
-  { name: "TSLA", open: 700, close: 710, high: 720, low: 690 },
-];
-
-const StyledTableContainer = styled(TableContainer)`
-  max-height: 35vh;
-  overflow-y: auto;
+const TableContainer = styled.div`
+  height: 100%;
+  overflow: auto;
   &::-webkit-scrollbar {
     width: 12px;
   }
@@ -43,41 +25,58 @@ const StyledTableContainer = styled(TableContainer)`
   }
 `;
 
-const StyledTableCellHead = styled(TableCell)`
-  background-color: ${({ theme }) =>
-    theme.colors.stockPriceTable.heading.background};
-  color: ${({ theme }) => theme.colors.stockPriceTable.heading.color};
-  border-bottom: 2px solid
-    ${({ theme }) => theme.colors.stockPriceTable.heading.border};
+const StyledTable = styled(Table)`
+  .MuiTableCell-head {
+    background-color: ${({ theme }) => theme.colors.table.header.background};
+    color: ${({ theme }) => theme.colors.table.header.color};
+  }
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .MuiTableRow-root {
+    &:hover {
+      background-color: ${({ theme }) =>
+        theme.colors.table.body.hover.background};
+    }
+    background-color: ${({ theme }) => theme.colors.table.body.background};
+  }
+  .MuiTableCell-body {
+    color: ${({ theme }) => theme.colors.table.body.color};
+  }
+  .MuiTablePagination-root {
+    background-color: ${({ theme }) =>
+      theme.colors.table.pagination.background};
+    color: ${({ theme }) => theme.colors.table.pagination.color};
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+  }
 `;
-
-const StyledTableCellBody = styled(TableCell)`
-  background-color: ${({ theme }) =>
-    theme.colors.stockPriceTable.body.background};
-  color: ${({ theme }) => theme.colors.stockPriceTable.body.color};
-  border-bottom: 1px solid
-    ${({ theme }) => theme.colors.stockPriceTable.body.border};
-`;
-
-export const StockPriceTable = memo(() => {
-  const { data, isLoading, isError } = useStocksHistory([
-    "AAPL",
-    "GOOGL",
-    "MSFT",
-    "AMZN",
-    "TSLA",
-  ]);
-  const stocks = useMemo(() =>
-    Object.entries(data ?? {}).map(([name, values]) => {
-      return {
-        name,
-        open: values[values.length - 1].Open.toFixed(2),
-        close: values[values.length - 1].Close.toFixed(2),
-        high: values[values.length - 1].High.toFixed(2),
-        low: values[values.length - 1].Low.toFixed(2),
-      };
-    })
-  );
+const rowsPerPageOptions = [10];
+export const StockPriceTable = memo(({ data }) => {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const displayStocks = useMemo(() => {
+    const start = page * rowsPerPage;
+    const end = start + rowsPerPage;
+    if (end > data.length) {
+      const emptyStock = Array.from(
+        { length: end - data.length },
+        (_, index) => ({
+          name: " ".repeat(index),
+          open: "\u00A0",
+          close: "",
+          high: "",
+          low: "",
+          disableSelect: true,
+        })
+      );
+      return [...data.slice(start, end), ...emptyStock];
+    }
+    return data.slice(start, end);
+  }, [page, rowsPerPage, data]);
   const columns = useMemo(
     () => [
       {
@@ -109,36 +108,24 @@ export const StockPriceTable = memo(() => {
     []
   );
 
-  if (isLoading) {
-    return <></>;
-  }
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden", borderRadius: 2 }}>
-      <StyledTableContainer component={Card}>
-        <Table stickyHeader>
-          <TableHead>
-            <TableRow>
-              {columns.map(({ header, key }) => (
-                <StyledTableCellHead key={key}>{header}</StyledTableCellHead>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {stocks.map((stock) => {
-              return (
-                <TableRow key={stock.name}>
-                  {columns.map(({ key, render }) => (
-                    <StyledTableCellBody component="th" scope="row" key={key}>
-                      {render(stock)}
-                    </StyledTableCellBody>
-                  ))}
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </StyledTableContainer>
-    </Paper>
+    <TableContainer>
+      <StyledTable
+        data={displayStocks}
+        cols={columns}
+        rowKey={"name"}
+        page={page}
+        rowsPerPageOptions={rowsPerPageOptions}
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(event.target.value);
+        }}
+        rowsPerPage={rowsPerPage}
+        onPageChange={(event, newPage) => {
+          setPage(newPage);
+        }}
+        count={data.length}
+      />
+    </TableContainer>
   );
 });
 
