@@ -1,220 +1,138 @@
-import { Button, Card, Typography, Box } from "@mui/material";
-import { memo, useMemo } from "react";
-import styled from "styled-components";
-import { useFormik } from "formik";
-import * as Yup from "yup";
 import {
-  FormikDateField,
-  FormikTextField,
-  SelectStocksField,
-} from "./components";
-import dayjs from "dayjs";
+  Box,
+  Button,
+  Step,
+  StepLabel,
+  Stepper,
+  Typography,
+} from "@mui/material";
+import { memo, useState } from "react";
+import styled from "styled-components";
+import { SelectStockTable, TrainParamsForm } from "./components";
 
-const StyledBox = styled(Card)`
-  width: min(75%, 30vw);
-  margin: auto;
-  padding: 2rem 3rem;
+const Wrapper = styled(Box)`
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+  margin: 0 auto;
+  gap: 1rem;
+  height: 100%;
 `;
 
-const StyledFormContainer = styled(Box)`
-  flex-grow: 1; // Take up remaining space
+const StyledStepper = styled(Stepper)`
+  & .MuiStepLabel-label {
+    font-size: 1.1rem;
+    color: #666666;
+  }
+
+  & .MuiStepLabel-label.Mui-active {
+    color: #1976d2;
+    font-weight: 600;
+  }
+
+  & .MuiStepLabel-label.Mui-completed {
+    color: #2e7d32;
+  }
+
+  & .MuiStepIcon-root {
+    width: 2rem;
+    height: 2rem;
+    color: #e0e0e0;
+  }
+
+  & .MuiStepIcon-root.Mui-active {
+    color: #1976d2;
+  }
+
+  & .MuiStepIcon-root.Mui-completed {
+    color: #2e7d32;
+  }
+
+  & .MuiStepConnector-line {
+    border-color: #e0e0e0;
+    border-width: 2px;
+  }
+`;
+
+const StepContent = styled(Box)`
+  height: 100%;
+`;
+
+const ButtonRow = styled(Box)`
   display: flex;
-  flex-direction: column;
-`;
-
-const StyledForm = styled(Box)`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
-  margin-top: 2rem;
-`;
-
-const StyledRow = styled(Box)`
-  flex: 1 1 45%;
-`;
-
-const ButtonWrapper = styled(Box)`
-  display: flex;
+  gap: 1rem;
   justify-content: flex-end;
-  gap: 2rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
 `;
 
-const validationSchema = Yup.object().shape({
-  tau: Yup.number()
-    .required("Required")
-    .min(0, "Must be greater than 0")
-    .max(1, "Must be less than 1"),
-  alpha: Yup.number()
-    .required("Required")
-    .min(0, "Must be greater than 0")
-    .max(1, "Must be less than 1"),
-  beta: Yup.number()
-    .required("Required")
-    .min(0, "Must be greater than 0")
-    .max(1, "Must be less than 1"),
-  batchSize: Yup.number()
-    .required("Required")
-    .integer("Must be an integer")
-    .positive("Must be positive"),
-  epochs: Yup.number()
-    .required("Required")
-    .integer("Must be an integer")
-    .positive("Must be positive"),
-  startDate: Yup.date()
-    .required("Required")
-    .max(Yup.ref("endDate"), "Start date must be before end date"),
-  endDate: Yup.date()
-    .required("Required")
-    .min(Yup.ref("startDate"), "End date must be after start date"),
-  rebalanceWindow: Yup.number()
-    .required("Required")
-    .integer("Must be an integer"),
-  principle: Yup.number().required("Required"),
-  stocks: Yup.array().min(2, "Select at least two stocks").required("Required"),
-});
+const NextButton = styled(Button)`
+  background-color: #1976d2;
+  color: #ffffff;
+  padding: 0.5rem 2rem;
+  border-radius: 6px;
+  &:hover {
+    background-color: #1565c0;
+  }
+`;
+
+const BackButton = styled(Button)`
+  background-color: #f5f5f5;
+  color: #333333;
+  padding: 0.5rem 2rem;
+  border-radius: 6px;
+  &:hover {
+    background-color: #e0e0e0;
+  }
+`;
 
 export const ConfigPage = memo(() => {
-  const fields = useMemo(
-    () => [
-      {
-        label: "tau",
-        name: "tau",
-        initValue: 0.001,
-        type: "number",
-      },
-      {
-        label: "alpha",
-        name: "alpha",
-        initValue: 0.00025,
-        type: "number",
-      },
-      {
-        label: "beta",
-        name: "beta",
-        initValue: 0.00025,
-        type: "number",
-      },
-      {
-        label: "batch size",
-        name: "batchSize",
-        initValue: 8,
-        type: "number",
-      },
-      {
-        label: "epochs",
-        name: "epochs",
-        initValue: 40,
-        type: "number",
-      },
-      {
-        label: "start date",
-        name: "startDate",
-        initValue: dayjs(),
-        type: "date",
-      },
-      {
-        label: "end date",
-        name: "endDate",
-        initValue: dayjs(),
-        type: "date",
-      },
-      {
-        label: "rebalancew window",
-        name: "rebalanceWindow",
-        initValue: 10,
-        type: "number",
-      },
-      {
-        label: "principle",
-        name: "principle",
-        initValue: 10000,
-        type: "number",
-      },
-      {
-        label: "dummy",
-        name: "dummy",
-        initValue: "dummy",
-        type: "dummy",
-      },
-      {
-        label: "stocks",
-        name: "stocks",
-        initValue: [],
-        type: "stocks",
-      },
-    ],
-    [dayjs]
-  );
+  const [stage, setStage] = useState(0);
 
-  const initialValues = useMemo(
-    () =>
-      fields.reduce((acc, field) => {
-        if (field.name === "dummy") return acc;
-        acc[field.name] = field.initValue;
-        return acc;
-      }, {}),
-    [fields]
-  );
-  const formik = useFormik({
-    initialValues,
-    validationSchema,
-    onSubmit: (values) => {
-      values = { ...values };
-      values.startDate = values.startDate.format("YYYY-MM-DD");
-      values.endDate = values.endDate.format("YYYY-MM-DD");
-      console.log(values);
-    },
-  });
-  console.log(formik.errors);
+  const steps = [
+    "Select Stocks",
+    "Set Training Params",
+    "Wait for Model Training",
+  ];
 
   return (
-    <StyledBox>
-      <Typography variant="h5" gutterBottom>
-        Model Parameters
-      </Typography>
+    <Wrapper>
+      <StyledStepper activeStep={stage} alternativeLabel>
+        {steps.map((label, index) => (
+          <Step key={label}>
+            <StepLabel>
+              <Typography variant="body1">
+                Step {index + 1}: {label}
+              </Typography>
+            </StepLabel>
+          </Step>
+        ))}
+      </StyledStepper>
 
-      <form onSubmit={formik.handleSubmit}>
-        <StyledFormContainer>
-          <StyledForm>
-            {fields.map(({ label, name, type }) => (
-              <StyledRow key={name}>
-                {["string", "number"].includes(type) && (
-                  <FormikTextField
-                    formik={formik}
-                    label={label}
-                    name={name}
-                    type={type}
-                  />
-                )}
+      <StepContent>
+        {stage === 0 && <SelectStockTable />}
+        {stage === 1 && <TrainParamsForm />}
+      </StepContent>
 
-                {["date"].includes(type) && (
-                  <FormikDateField formik={formik} label={label} name={name} />
-                )}
-                {["stocks"].includes(type) && (
-                  <SelectStocksField
-                    formik={formik}
-                    label={label}
-                    name={name}
-                  />
-                )}
-              </StyledRow>
-            ))}
-          </StyledForm>
-        </StyledFormContainer>
-
-        <ButtonWrapper>
-          <Button variant="outlined" type="reset" onClick={formik.handleReset}>
-            Reset
-          </Button>
-          <Button variant="contained" type="submit">
-            Train
-          </Button>
-        </ButtonWrapper>
-      </form>
-    </StyledBox>
+      <ButtonRow>
+        {stage > 0 && (
+          <BackButton
+            onClick={() => setStage((prev) => prev - 1)}
+            variant="outlined"
+          >
+            Back
+          </BackButton>
+        )}
+        {stage < steps.length - 1 && (
+          <NextButton
+            onClick={() => setStage((prev) => prev + 1)}
+            variant="contained"
+          >
+            Next
+          </NextButton>
+        )}
+      </ButtonRow>
+    </Wrapper>
   );
 });
 

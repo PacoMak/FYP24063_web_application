@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import {
   LineChart,
   Line,
@@ -28,10 +28,7 @@ const data = [
 export const PortfolioValueChart = memo(() => {
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <LineChart
-        data={data}
-        margin={{ top: 30, right: 30, left: 20, bottom: 20 }}
-      >
+      <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
         <YAxis />

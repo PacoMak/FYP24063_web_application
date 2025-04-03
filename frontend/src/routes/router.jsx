@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { ROUTES } from "../constants";
-import { BasePage, ConfigPage, DashboardPage } from "../pages";
+import { BasePage, ConfigPage, DashboardPage, ModelsPage } from "../pages";
 
 export const routes = [
   {
@@ -20,8 +20,16 @@ export const routes = [
     ),
   },
   {
+    path: ROUTES.Models.path,
+    element: (
+      <BasePage>
+        <ModelsPage />
+      </BasePage>
+    ),
+  },
+  {
     path: "*",
-    element: <Navigate to={ROUTES.Dashboard.path} replace />,
+    element: <Navigate to={ROUTES.Models.path} replace />,
   },
 ];
 export const router = createBrowserRouter(routes);

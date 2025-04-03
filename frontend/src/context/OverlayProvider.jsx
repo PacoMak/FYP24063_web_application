@@ -1,12 +1,7 @@
-import React, { useCallback, useContext } from "react";
+import { useCallback } from "react";
 import { useState } from "react";
 import { Dialog, Title } from "../components";
-
-export const OverlayContext = React.createContext({
-  showSpinner: () => {},
-  hideSpinner: () => {},
-  showErrorDialog: () => {},
-});
+import { OverlayContext } from "./useOverlay";
 
 export const OverlayProvider = ({ children, spinnerComponent }) => {
   const [displaySpinner, setDisplaySpinner] = useState(false);
@@ -75,8 +70,4 @@ export const OverlayProvider = ({ children, spinnerComponent }) => {
       {children}
     </OverlayContext.Provider>
   );
-};
-
-export const useOverlay = () => {
-  return useContext(OverlayContext);
 };
