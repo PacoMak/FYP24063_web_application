@@ -220,33 +220,24 @@ def test(agent, env, assets, model_id):
 
 
 if __name__ == "__main__":
-
-    assets = ["APA", "TSLA"]
-    rebalance_window = 1
-    tx_fee_per_share = 0.005
-    principal = 1000000
-    num_epoch = 5
     temp_model_id = "20250217"
-    train_start_date = "2015-01-01"
-    train_end_date = "2017-12-31"
-    alpha = 0.0005
-    beta = 0.0025
-    gamma = 0.99
-    tau = 0.09
-    batch_size = 128
+
     parameters = {
-        "assets": assets,
-        "rebalance_window": rebalance_window,
-        "tx_fee_per_share": tx_fee_per_share,
-        "principal": principal,
-        "num_epoch": num_epoch,
-        "start_date": train_start_date,
-        "end_date": train_end_date,
-        "alpha": alpha,
-        "beta": beta,
-        "gamma": gamma,
-        "tau": tau,
-        "batch_size": batch_size,
+        "name": temp_model_id,
+        "assets": ["APA", "TSLA"],
+        "rebalance_window": 1,
+        "tx_fee_per_share": 0.005,
+        "principal": 1000000,
+        "num_epoch": 5,
+        "train_start_date": "2015-01-01",
+        "train_end_date": "2017-12-31",
+        "test_start_date": "2018-01-01",
+        "test_end_date": "2024-12-31",
+        "alpha": 0.0005,
+        "beta": 0.0025,
+        "gamma": 0.99,
+        "tau": 0.09,
+        "batch_size": 128,
     }
     model_paths = get_model_paths(temp_model_id)
 
@@ -266,9 +257,9 @@ if __name__ == "__main__":
         beta=0.0025,
         gamma=0.99,
         tau=0.09,
-        input_dims=[len(assets) * 5 + 2],
+        input_dims=[len(parameters["assets"]) * 5 + 2],
         batch_size=128,
-        n_actions=len(assets) + 1,
+        n_actions=len(parameters["assets"]) + 1,
         device=device,
     )
     agent.save_models(
@@ -278,24 +269,29 @@ if __name__ == "__main__":
         target_critic_path=model_paths["target_critic"],
     )
     training_env = TradingSimulator(
-        principal=principal,
-        assets=assets,
-        start_date=train_start_date,
-        end_date=train_end_date,
-        rebalance_window=rebalance_window,
-        tx_fee_per_share=tx_fee_per_share,
+        principal=parameters["principal"],
+        assets=parameters["assets"],
+        start_date=parameters["train_start_date"],
+        end_date=parameters["train_end_date"],
+        rebalance_window=parameters["rebalance_window"],
+        tx_fee_per_share=parameters["tx_fee_per_share"],
     )
 
     test_env = TradingSimulator(
-        principal=principal,
-        assets=assets,
-        start_date="2018-01-01",
-        end_date="2024-12-31",
-        rebalance_window=rebalance_window,
-        tx_fee_per_share=tx_fee_per_share,
+        principal=parameters["principal"],
+        assets=parameters["assets"],
+        start_date=parameters["test_start_date"],
+        end_date=parameters["test_end_date"],
+        rebalance_window=parameters["rebalance_window"],
+        tx_fee_per_share=parameters["tx_fee_per_share"],
     )
     start_time = time.time()
-    train(agent=agent, env=training_env, num_epoch=num_epoch, model_id=temp_model_id)
+    train(
+        agent=agent,
+        env=training_env,
+        num_epoch=parameters["num_epoch"],
+        model_id=temp_model_id,
+    )
     end_time = time.time()
     print(f"{device} Training time: {end_time - start_time} seconds")
-    test(agent=agent, env=test_env, assets=assets, model_id=temp_model_id)
+    test(agent=agent, env=test_env, assets=parameters["assets"], model_id=temp_model_id)

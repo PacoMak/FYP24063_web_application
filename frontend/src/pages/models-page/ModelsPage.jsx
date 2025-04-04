@@ -1,11 +1,11 @@
 import { memo, useCallback, useMemo, useState } from "react";
 import { Box, Button, Checkbox } from "@mui/material";
 import styled from "styled-components";
-import { Models } from "../../data";
 import { Table } from "../../components";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants";
 import { DeleteIcon } from "../../icons";
+import { useModelList } from "../../api";
 
 const Wrapper = styled(Box)`
   display: flex;
@@ -95,33 +95,31 @@ export const ModelsPage = memo(() => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedModels, setSelectedModels] = useState([]);
+  const { data: modelList, isFetching } = useModelList();
   const navigate = useNavigate();
-
+  const models = useMemo(() => {
+    if (isFetching) {
+      return [];
+    }
+    return modelList ?? [];
+  }, [isFetching, modelList]);
   const displayModels = useMemo(() => {
     const start = page * rowsPerPage;
     const end = start + rowsPerPage;
 
-    if (end > Models.length) {
+    if (end > models.length) {
       const emptyModel = Array.from(
-        { length: end - Models.length },
+        { length: end - models.length },
         (_, i) => ({
-          id: `empty_${i}`,
-          name: "",
-          learning_rate: "",
-          tau: "",
-          gamma: "",
-          epsilon: "",
-          batch_size: "",
-          epochs: "",
-          max_memory: "",
+          model_id: ` `.repeat(i + 1),
           disableSelect: true,
         })
       );
-      return [...Models.slice(start, end), ...emptyModel];
+      return [...models.slice(start, end), ...emptyModel];
     }
 
-    return Models.slice(start, end);
-  }, [page, rowsPerPage]);
+    return models.slice(start, end);
+  }, [page, rowsPerPage, models]);
 
   const cols = useMemo(
     () => [
@@ -144,7 +142,7 @@ export const ModelsPage = memo(() => {
               setSelectedModels((prev) => prev.filter((id) => id !== model.id));
             }}
             onClick={(event) => {
-              event.stopPropagation(); // Prevents the checkbox click from triggering row click
+              event.stopPropagation();
             }}
           />
         ),
@@ -152,12 +150,17 @@ export const ModelsPage = memo(() => {
       {
         key: "name",
         header: "Name",
-        render: (model) => model.name,
+        render: (model) => model.model_id,
       },
       {
-        key: "learning_rate",
-        header: "Learning_rate",
-        render: (model) => model.learning_rate,
+        key: "Actor_Learning_Rate",
+        header: "Actor Learning Rate",
+        render: (model) => model.alpha,
+      },
+      {
+        key: "Critic_Learning_Rate",
+        header: "Critic Learning Rate",
+        render: (model) => model.beta,
       },
       {
         key: "tau",
@@ -170,11 +173,6 @@ export const ModelsPage = memo(() => {
         render: (model) => model.gamma,
       },
       {
-        key: "epsilon",
-        header: "epsilon",
-        render: (model) => model.epsilon,
-      },
-      {
         key: "batch_size",
         header: "batch_size",
         render: (model) => model.batch_size,
@@ -182,12 +180,27 @@ export const ModelsPage = memo(() => {
       {
         key: "epochs",
         header: "epochs",
-        render: (model) => model.epochs,
+        render: (model) => model.num_epoch,
       },
       {
-        key: "max_memory",
-        header: "max_memory",
-        render: (model) => model.max_memory,
+        key: "Training_Start_date",
+        header: "Training Start Date",
+        render: (model) => model.train_start_date,
+      },
+      {
+        key: "Training_End_date",
+        header: "Training End Date",
+        render: (model) => model.train_end_date,
+      },
+      {
+        key: "Testing_Start_date",
+        header: "Testing Start Date",
+        render: (model) => model.test_start_date,
+      },
+      {
+        key: "Testing_End_date",
+        header: "Testing End Date",
+        render: (model) => model.test_end_date,
       },
     ],
     [selectedModels]
@@ -204,20 +217,20 @@ export const ModelsPage = memo(() => {
         <StyledTable
           cols={cols}
           data={displayModels}
-          rowKey={"id"}
+          rowKey={"model_id"}
           page={page}
           rowsPerPageOptions={rowsPerPageOptions}
           onRowsPerPageChange={(event) => {
             setRowsPerPage(event.target.value);
           }}
           rowsPerPage={rowsPerPage}
-          onPageChange={(event, newPage) => {
+          onPageChange={(_, newPage) => {
             setPage(newPage);
           }}
           onRowClick={(datum) => {
             navigate(`${ROUTES.Dashboard.render(datum.id)}`);
           }}
-          count={Models.length}
+          count={models.length}
         />
       </TableContainer>
     </Wrapper>
