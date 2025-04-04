@@ -11,43 +11,41 @@ from .baseline import (
 from ..utils import plot_graph
 import time
 import torch as T
+from ..utils import project_root
 
 # File paths
-SAVED_MODELS_DIR = "saved_models"
-SAVED_MODEL_DIR = f"{SAVED_MODELS_DIR}/{{id}}"
-SAVED_MODEL_PARAMS_FILEPATH = f"{SAVED_MODEL_DIR}/parameters.json"
-# For network
-SAVED_MODEL_NETWORKS_DIR = f"{SAVED_MODEL_DIR}/networks"
-SAVED_MODEL_ACTOR_FILEPATH = f"{SAVED_MODEL_NETWORKS_DIR}/actor_ddpg"
-SAVED_MODEL_TARGET_ACTOR_FILEPATH = f"{SAVED_MODEL_NETWORKS_DIR}/target_actor_ddpg"
-SAVED_MODEL_CRITIC_FILEPATH = f"{SAVED_MODEL_NETWORKS_DIR}/critic_ddpg"
-SAVED_MODEL_TARGET_CRITIC_FILEPATH = f"{SAVED_MODEL_NETWORKS_DIR}/target_critic_ddpg"
+SAVED_MODELS_DIR = project_root / "src" / "trained_models"
 
-# for evaluation
-SAVED_MODEL_EVALUATION_DIR = f"{SAVED_MODEL_DIR}/evaluation"
-SAVED_MODEL_RETURN_OVER_EPOCH_JSON_FILEPATH = (
-    f"{SAVED_MODEL_EVALUATION_DIR}/return_over_epoch.json"
-)
-SAVED_MODEL_SHARPE_RATIO_OVER_EPOCH_JSON_FILEPATH = (
-    f"{SAVED_MODEL_EVALUATION_DIR}/sharpe_ratio_over_epoch.json"
-)
-SAVED_MODEL_RETURN_OVER_TIME_JSON_FILEPATH = (
-    f"{SAVED_MODEL_EVALUATION_DIR}/return_over_time.json"
-)
-# evaluation graph file paths (should be removed in the end)
-SAVED_MODEL_GRAPH_DIR = f"{SAVED_MODEL_DIR}/graph"
-SAVED_MODEL_RETURN_OVER_EPOCH_FILEPATH = (
-    f"{SAVED_MODEL_GRAPH_DIR}/return_over_epoch.png"
-)
-SAVED_MODEL_SHARPE_RATIO_OVER_EPOCH_FILEPATH = (
-    f"{SAVED_MODEL_GRAPH_DIR}/sharpe_ratio_over_epoch.png"
-)
-SAVED_MODEL_ACTOR_LOSS_OVER_EPOCH_FILEPATH = f"{SAVED_MODEL_GRAPH_DIR}/actor_loss.png"
-SAVED_MODEL_CRITIC_LOSS_OVER_EPOCH_FILEPATH = f"{SAVED_MODEL_GRAPH_DIR}/critic_loss.png"
-SAVED_MODEL_RETURN_OVER_TIME_FILEPATH = f"{SAVED_MODEL_GRAPH_DIR}/return_over_time.png"
+
+def get_model_paths(model_id):
+    model_dir = SAVED_MODELS_DIR / str(model_id)
+    networks_dir = model_dir / "networks"
+    evaluation_dir = model_dir / "evaluation"
+    graph_dir = model_dir / "graph"
+
+    return {
+        "model_dir": model_dir,
+        "networks_dir": networks_dir,
+        "evaluation_dir": evaluation_dir,
+        "graph_dir": graph_dir,
+        "params": model_dir / "parameters.json",
+        "actor": networks_dir / "actor_ddpg",
+        "target_actor": networks_dir / "target_actor_ddpg",
+        "critic": networks_dir / "critic_ddpg",
+        "target_critic": networks_dir / "target_critic_ddpg",
+        "return_over_epoch": evaluation_dir / "return_over_epoch.json",
+        "sharpe_ratio_over_epoch": evaluation_dir / "sharpe_ratio_over_epoch.json",
+        "return_over_time": evaluation_dir / "return_over_time.json",
+        "return_over_epoch_graph": graph_dir / "return_over_epoch.png",
+        "sharpe_ratio_over_epoch_graph": graph_dir / "sharpe_ratio_over_epoch.png",
+        "actor_loss_graph": graph_dir / "actor_loss.png",
+        "critic_loss_graph": graph_dir / "critic_loss.png",
+        "return_over_time_graph": graph_dir / "return_over_time.png",
+    }
 
 
 def train(agent, env, num_epoch, model_id):
+    model_paths = get_model_paths(model_id)
     is_training_mode = True
     return_history = {"ddpg": []}
     sharpe_ratio_history = {"ddpg": []}
@@ -80,12 +78,10 @@ def train(agent, env, num_epoch, model_id):
 
         if i % 5 == 0:
             agent.save_models(
-                actor_path=SAVED_MODEL_ACTOR_FILEPATH.format(id=model_id),
-                target_actor_path=SAVED_MODEL_TARGET_ACTOR_FILEPATH.format(id=model_id),
-                critic_path=SAVED_MODEL_CRITIC_FILEPATH.format(id=model_id),
-                target_critic_path=SAVED_MODEL_TARGET_CRITIC_FILEPATH.format(
-                    id=model_id
-                ),
+                actor_path=model_paths["actor"],
+                target_actor_path=model_paths["target_actor"],
+                critic_path=model_paths["critic"],
+                target_critic_path=model_paths["target_critic"],
             )
             xAxis = range(1, i + 1)
             plot_graph(
@@ -94,7 +90,7 @@ def train(agent, env, num_epoch, model_id):
                 y_label="Total return",
                 xAxis=xAxis,
                 yAxis=return_history,
-                filename=SAVED_MODEL_RETURN_OVER_EPOCH_FILEPATH.format(id=model_id),
+                filename=model_paths["return_over_epoch_graph"],
             )
 
             plot_graph(
@@ -103,9 +99,7 @@ def train(agent, env, num_epoch, model_id):
                 y_label="Sharpe Ratio",
                 xAxis=xAxis,
                 yAxis=sharpe_ratio_history,
-                filename=SAVED_MODEL_SHARPE_RATIO_OVER_EPOCH_FILEPATH.format(
-                    id=model_id
-                ),
+                filename=model_paths["sharpe_ratio_over_epoch_graph"],
             )
 
             plot_graph(
@@ -114,7 +108,7 @@ def train(agent, env, num_epoch, model_id):
                 y_label="Actor Loss",
                 xAxis=xAxis,
                 yAxis=actor_loss_history,
-                filename=SAVED_MODEL_ACTOR_LOSS_OVER_EPOCH_FILEPATH.format(id=model_id),
+                filename=model_paths["actor_loss_graph"],
             )
 
             plot_graph(
@@ -123,9 +117,7 @@ def train(agent, env, num_epoch, model_id):
                 y_label="Critic Loss",
                 xAxis=xAxis,
                 yAxis=critic_loss_history,
-                filename=SAVED_MODEL_CRITIC_LOSS_OVER_EPOCH_FILEPATH.format(
-                    id=model_id
-                ),
+                filename=model_paths["critic_loss_graph"],
             )
         print(
             f"------Episode {i} Summary: Total Return {total_return:.2f}; Sharpe Ratio {sharpe_ratio:.5f};------\n"
@@ -136,10 +128,10 @@ def train(agent, env, num_epoch, model_id):
     )
 
     agent.save_models(
-        actor_path=SAVED_MODEL_ACTOR_FILEPATH.format(id=model_id),
-        target_actor_path=SAVED_MODEL_TARGET_ACTOR_FILEPATH.format(id=model_id),
-        critic_path=SAVED_MODEL_CRITIC_FILEPATH.format(id=model_id),
-        target_critic_path=SAVED_MODEL_TARGET_CRITIC_FILEPATH.format(id=model_id),
+        actor_path=model_paths["actor"],
+        target_actor_path=model_paths["target_actor"],
+        critic_path=model_paths["critic"],
+        target_critic_path=model_paths["target_critic"],
     )
     xAxis = range(1, num_epoch + 1)
     plot_graph(
@@ -148,7 +140,7 @@ def train(agent, env, num_epoch, model_id):
         y_label="Total return",
         xAxis=xAxis,
         yAxis=return_history,
-        filename=SAVED_MODEL_RETURN_OVER_EPOCH_FILEPATH.format(id=model_id),
+        filename=model_paths["return_over_epoch_graph"],
     )
 
     plot_graph(
@@ -157,20 +149,17 @@ def train(agent, env, num_epoch, model_id):
         y_label="Sharpe Ratio",
         xAxis=xAxis,
         yAxis=sharpe_ratio_history,
-        filename=SAVED_MODEL_SHARPE_RATIO_OVER_EPOCH_FILEPATH.format(id=model_id),
+        filename=model_paths["sharpe_ratio_over_epoch_graph"],
     )
-    with open(
-        SAVED_MODEL_RETURN_OVER_EPOCH_JSON_FILEPATH.format(id=model_id), "w"
-    ) as f:
+    with open(model_paths["return_over_epoch"], "w") as f:
         json.dump(return_history["ddpg"], f)
-    with open(
-        SAVED_MODEL_SHARPE_RATIO_OVER_EPOCH_JSON_FILEPATH.format(id=model_id), "w"
-    ) as f:
+    with open(model_paths["sharpe_ratio_over_epoch"], "w") as f:
         json.dump(sharpe_ratio_history["ddpg"], f)
     return
 
 
 def test(agent, env, assets, model_id):
+    model_paths = get_model_paths(model_id)
     is_training_mode = False
     return_history = {}
     modes = [
@@ -182,10 +171,10 @@ def test(agent, env, assets, model_id):
     print(modes)
     if "ddpg" in modes:
         agent.load_models(
-            actor_path=SAVED_MODEL_ACTOR_FILEPATH.format(id=model_id),
-            target_actor_path=SAVED_MODEL_TARGET_ACTOR_FILEPATH.format(id=model_id),
-            critic_path=SAVED_MODEL_CRITIC_FILEPATH.format(id=model_id),
-            target_critic_path=SAVED_MODEL_TARGET_CRITIC_FILEPATH.format(id=model_id),
+            actor_path=model_paths["actor"],
+            target_actor_path=model_paths["target_actor"],
+            critic_path=model_paths["critic"],
+            target_critic_path=model_paths["target_critic"],
         )
         np.random.seed(0)
         return_history["ddpg"] = []
@@ -223,14 +212,15 @@ def test(agent, env, assets, model_id):
         y_label="Cumulative return",
         xAxis=range(1, len(return_history[list(return_history.keys())[0]]) + 1),
         yAxis=return_history,
-        filename=SAVED_MODEL_RETURN_OVER_TIME_FILEPATH.format(id=model_id),
+        filename=model_paths["return_over_time_graph"],
     )
-    with open(SAVED_MODEL_RETURN_OVER_TIME_JSON_FILEPATH.format(id=model_id), "w") as f:
+    with open(model_paths["return_over_time"], "w") as f:
         json.dump(return_history["ddpg"], f)
     return
 
 
 if __name__ == "__main__":
+
     assets = ["APA", "TSLA"]
     rebalance_window = 1
     tx_fee_per_share = 0.005
@@ -258,18 +248,18 @@ if __name__ == "__main__":
         "tau": tau,
         "batch_size": batch_size,
     }
-    with open(f"{SAVED_MODEL_PARAMS_FILEPATH.format(id=temp_model_id)}", "w") as f:
+    model_paths = get_model_paths(temp_model_id)
+
+    if not os.path.isdir(model_paths["model_dir"]):
+        os.makedirs(model_paths["model_dir"])
+    if not os.path.isdir(model_paths["networks_dir"]):
+        os.makedirs(model_paths["networks_dir"])
+    if not os.path.isdir(model_paths["evaluation_dir"]):
+        os.makedirs(model_paths["evaluation_dir"])
+    if not os.path.isdir(model_paths["graph_dir"]):
+        os.makedirs(model_paths["graph_dir"])
+    with open(model_paths["params"], "w") as f:
         json.dump(parameters, f, indent=4)
-    if not os.path.isdir(SAVED_MODEL_DIR.format(id=temp_model_id)):
-        os.makedirs(SAVED_MODEL_DIR.format(id=temp_model_id))
-    if not os.path.isdir(SAVED_MODEL_NETWORKS_DIR.format(id=temp_model_id)):
-        os.makedirs(SAVED_MODEL_NETWORKS_DIR.format(id=temp_model_id))
-
-    if not os.path.isdir(SAVED_MODEL_EVALUATION_DIR.format(id=temp_model_id)):
-        os.makedirs(SAVED_MODEL_EVALUATION_DIR.format(id=temp_model_id))
-    if not os.path.isdir(SAVED_MODEL_GRAPH_DIR.format(id=temp_model_id)):
-        os.makedirs(SAVED_MODEL_GRAPH_DIR.format(id=temp_model_id))
-
     device = "cuda:0" if T.cuda.is_available() else "cpu"
     agent = Agent(
         alpha=0.0005,
@@ -282,10 +272,10 @@ if __name__ == "__main__":
         device=device,
     )
     agent.save_models(
-        actor_path=SAVED_MODEL_ACTOR_FILEPATH.format(id=temp_model_id),
-        target_actor_path=SAVED_MODEL_TARGET_ACTOR_FILEPATH.format(id=temp_model_id),
-        critic_path=SAVED_MODEL_CRITIC_FILEPATH.format(id=temp_model_id),
-        target_critic_path=SAVED_MODEL_TARGET_CRITIC_FILEPATH.format(id=temp_model_id),
+        actor_path=model_paths["actor"],
+        target_actor_path=model_paths["target_actor"],
+        critic_path=model_paths["critic"],
+        target_critic_path=model_paths["target_critic"],
     )
     training_env = TradingSimulator(
         principal=principal,
