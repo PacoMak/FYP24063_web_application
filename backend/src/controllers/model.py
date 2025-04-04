@@ -96,7 +96,7 @@ def get_model_test_metrics(model_id):
         return Response(response=f"Internal error: {e}", status=501)
 
 
-@model.route("/model", methods=["GET"])
+@model.route("/models", methods=["GET"])
 def get_models():
     try:
         res = []
@@ -106,14 +106,9 @@ def get_models():
             res.append(
                 {
                     "model_id": model_id,
-                    "assets": params["assets"],
-                    "start_date": params["start_date"],
-                    "end_date": params["end_date"],
-                    "rebalance_window": params["rebalance_window"],
-                    "tx_fee_per_share": params["tx_fee_per_share"],
+                    **params,
                 }
             )
-
         return Response(response=json.dumps(res), status=200)
     except Exception as e:
         return Response(response=f"Internal error: {e}", status=501)
