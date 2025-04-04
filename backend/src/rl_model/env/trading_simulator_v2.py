@@ -72,6 +72,7 @@ class TradingSimulator:
         close_data = close_data.drop(
             columns=[(stock, label) for stock in assets for label in to_drop]
         )  # Drop unused columns
+        print(close_data)
         start_index = close_data[close_data["Date"] >= start_date].index[
             0
         ]  # Index of the first trading date in range

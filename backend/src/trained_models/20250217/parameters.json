@@ -1,0 +1,17 @@
+{
+    "assets": [
+        "APA",
+        "TSLA"
+    ],
+    "rebalance_window": 1,
+    "tx_fee_per_share": 0.005,
+    "principal": 1000000,
+    "num_epoch": 5,
+    "start_date": "2015-01-01",
+    "end_date": "2017-12-31",
+    "alpha": 0.0005,
+    "beta": 0.0025,
+    "gamma": 0.99,
+    "tau": 0.09,
+    "batch_size": 128
+}

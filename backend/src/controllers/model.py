@@ -99,7 +99,21 @@ def get_model_test_metrics(model_id):
 @model.route("/model", methods=["GET"])
 def get_models():
     try:
-        response = model_service.get_models()
-        return Response(response=json.dumps(response), status=200)
+        res = []
+        models = model_service.get_models()
+        for model_id in models:
+            params = model_service.get_trainning_params(model_id)
+            res.append(
+                {
+                    "model_id": model_id,
+                    "assets": params["assets"],
+                    "start_date": params["start_date"],
+                    "end_date": params["end_date"],
+                    "rebalance_window": params["rebalance_window"],
+                    "tx_fee_per_share": params["tx_fee_per_share"],
+                }
+            )
+
+        return Response(response=json.dumps(res), status=200)
     except Exception as e:
         return Response(response=f"Internal error: {e}", status=501)

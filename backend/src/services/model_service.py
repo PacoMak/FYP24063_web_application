@@ -4,19 +4,8 @@ import uuid_utils as uuid
 from flask import json
 from ..rl_model import (
     train,
+    get_model_paths,
     SAVED_MODELS_DIR,
-    SAVED_MODEL_DIR,
-    SAVED_MODEL_PARAMS_FILEPATH,
-    SAVED_MODEL_NETWORKS_DIR,
-    SAVED_MODEL_ACTOR_FILEPATH,
-    SAVED_MODEL_TARGET_ACTOR_FILEPATH,
-    SAVED_MODEL_CRITIC_FILEPATH,
-    SAVED_MODEL_TARGET_CRITIC_FILEPATH,
-    SAVED_MODEL_EVALUATION_DIR,
-    SAVED_MODEL_RETURN_OVER_EPOCH_JSON_FILEPATH,
-    SAVED_MODEL_SHARPE_RATIO_OVER_EPOCH_JSON_FILEPATH,
-    SAVED_MODEL_RETURN_OVER_TIME_JSON_FILEPATH,
-    SAVED_MODEL_GRAPH_DIR,
     Agent,
     TradingSimulator,
     test,
@@ -45,14 +34,15 @@ class ModelService:
         batch_size,
     ):
         model_id = str(uuid.uuid4())
-        if not os.path.isdir(SAVED_MODEL_DIR.format(id=model_id)):
-            os.makedirs(SAVED_MODEL_DIR.format(id=model_id))
-        if not os.path.isdir(SAVED_MODEL_NETWORKS_DIR.format(id=model_id)):
-            os.makedirs(SAVED_MODEL_NETWORKS_DIR.format(id=model_id))
-        if not os.path.isdir(SAVED_MODEL_EVALUATION_DIR.format(id=model_id)):
-            os.makedirs(SAVED_MODEL_EVALUATION_DIR.format(id=model_id))
-        if not os.path.isdir(SAVED_MODEL_GRAPH_DIR.format(id=model_id)):
-            os.makedirs(SAVED_MODEL_GRAPH_DIR.format(id=model_id))
+        model_paths = get_model_paths(model_id)
+        if not os.path.isdir(model_paths["model_dir"]):
+            os.makedirs(model_paths["model_dir"])
+        if not os.path.isdir(model_paths["networks_dir"]):
+            os.makedirs(model_paths["networks_dir"])
+        if not os.path.isdir(model_paths["evaluation_dir"]):
+            os.makedirs(model_paths["evaluation_dir"])
+        if not os.path.isdir(model_paths["graph_dir"]):
+            os.makedirs(model_paths["graph_dir"])
 
         agent = Agent(
             alpha=alpha,
@@ -64,10 +54,10 @@ class ModelService:
             n_actions=len(assets) + 1,
         )
         agent.save_models(
-            actor_path=SAVED_MODEL_ACTOR_FILEPATH.format(id=model_id),
-            target_actor_path=SAVED_MODEL_TARGET_ACTOR_FILEPATH.format(id=model_id),
-            critic_path=SAVED_MODEL_CRITIC_FILEPATH.format(id=model_id),
-            target_critic_path=SAVED_MODEL_TARGET_CRITIC_FILEPATH.format(id=model_id),
+            actor_path=model_paths["actor"],
+            target_actor_path=model_paths["target_actor"],
+            critic_path=model_paths["critic"],
+            target_critic_path=model_paths["target_critic"],
         )
         training_env = TradingSimulator(
             principal=principal,
@@ -91,7 +81,7 @@ class ModelService:
             "tau": tau,
             "batch_size": batch_size,
         }
-        with open(f"{SAVED_MODEL_PARAMS_FILEPATH.format(id=model_id)}", "w") as f:
+        with open(model_paths["params"], "w") as f:
             json.dump(parameters, f, indent=4)
         training_thread = threading.Thread(
             target=train,
@@ -105,6 +95,7 @@ class ModelService:
         training_thread.start()
 
     def test_model(self, start_date, end_date, model_id):
+        model_paths = get_model_paths(model_id)
         params = self.get_trainning_params(model_id)
         assets = params["assets"]
         rebalance_window = params["rebalance_window"]
@@ -126,10 +117,10 @@ class ModelService:
             n_actions=len(assets) + 1,
         )
         agent.load_models(
-            actor_path=SAVED_MODEL_ACTOR_FILEPATH.format(id=model_id),
-            target_actor_path=SAVED_MODEL_TARGET_ACTOR_FILEPATH.format(id=model_id),
-            critic_path=SAVED_MODEL_CRITIC_FILEPATH.format(id=model_id),
-            target_critic_path=SAVED_MODEL_TARGET_CRITIC_FILEPATH.format(id=model_id),
+            actor_path=model_paths["actor"],
+            target_actor_path=model_paths["target_actor"],
+            critic_path=model_paths["critic"],
+            target_critic_path=model_paths["target_critic"],
         )
         testing_env = TradingSimulator(
             principal=principal,
@@ -152,54 +143,47 @@ class ModelService:
         testing_thread.start()
 
     def is_model_trained(self, model_id):
-        if not os.path.isdir(SAVED_MODEL_DIR.format(id=model_id)):
+        model_paths = get_model_paths(model_id)
+        if not os.path.isdir(model_paths["model_dir"]):
             return False
         if not (
-            os.path.isfile(SAVED_MODEL_ACTOR_FILEPATH.format(id=model_id))
-            and os.path.isfile(SAVED_MODEL_TARGET_ACTOR_FILEPATH.format(id=model_id))
-            and os.path.isfile(SAVED_MODEL_CRITIC_FILEPATH.format(id=model_id))
-            and os.path.isfile(SAVED_MODEL_TARGET_CRITIC_FILEPATH.format(id=model_id))
+            os.path.isfile(model_paths["actor"])
+            and os.path.isfile(model_paths["target_actor"])
+            and os.path.isfile(model_paths["critic"])
+            and os.path.isfile(model_paths["target_critic"])
         ):
             return False
         return True
 
     def get_trainning_params(self, model_id):
-        if not os.path.isfile(SAVED_MODEL_PARAMS_FILEPATH.format(id=model_id)):
+        model_paths = get_model_paths(model_id)
+        if not os.path.isfile(model_paths["params"]):
             raise FileNotFoundException(f"model {model_id} not found")
-        with open(f"{SAVED_MODEL_PARAMS_FILEPATH.format(id=model_id)}", "r") as f:
+        with open(model_paths["params"], "r") as f:
             params = json.load(f)
         return params
 
     def get_return_over_epoch_json(self, model_id):
-        if not os.path.isfile(
-            SAVED_MODEL_RETURN_OVER_EPOCH_JSON_FILEPATH.format(id=model_id)
-        ):
+        model_paths = get_model_paths(model_id)
+        if not os.path.isfile(model_paths["return_over_epoch"]):
             raise FileNotFoundException(f"return over epoch file not found")
-        with open(
-            SAVED_MODEL_RETURN_OVER_EPOCH_JSON_FILEPATH.format(id=model_id), "r"
-        ) as f:
+        with open(model_paths["return_over_epoch"], "r") as f:
             return_over_epoch = json.load(f)
         return return_over_epoch
 
     def get_return_over_time_json(self, model_id):
-        if not os.path.isfile(
-            SAVED_MODEL_RETURN_OVER_TIME_JSON_FILEPATH.format(id=model_id)
-        ):
+        model_paths = get_model_paths(model_id)
+        if not os.path.isfile(model_paths["return_over_time"]):
             raise FileNotFoundException(f"return over time file not found")
-        with open(
-            SAVED_MODEL_RETURN_OVER_TIME_JSON_FILEPATH.format(id=model_id), "r"
-        ) as f:
+        with open(model_paths["return_over_time"], "r") as f:
             return_over_time = json.load(f)
         return return_over_time
 
     def get_sharpe_ratio_over_epoch_json(self, model_id):
-        if not os.path.isfile(
-            SAVED_MODEL_SHARPE_RATIO_OVER_EPOCH_JSON_FILEPATH.format(id=model_id)
-        ):
+        model_paths = get_model_paths(model_id)
+        if not os.path.isfile(model_paths["sharpe_ratio_over_epoch"]):
             raise FileNotFoundException(f"sharpe_ratio over time file not found")
-        with open(
-            SAVED_MODEL_SHARPE_RATIO_OVER_EPOCH_JSON_FILEPATH.format(id=model_id), "r"
-        ) as f:
+        with open(model_paths["sharpe_ratio_over_epoch"], "r") as f:
             sharpe_ratio_over_epoch = json.load(f)
         return sharpe_ratio_over_epoch
 
