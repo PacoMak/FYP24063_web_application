@@ -88,7 +88,7 @@ const BackButton = styled(Button)`
 
 export const ConfigPage = memo(() => {
   const [stage, setStage] = useState(0);
-
+  const [selectedStocks, setSelectedStocks] = useState([]);
   const steps = [
     "Select Stocks",
     "Set Training Params",
@@ -110,7 +110,12 @@ export const ConfigPage = memo(() => {
       </StyledStepper>
 
       <StepContent>
-        {stage === 0 && <SelectStockTable />}
+        {stage === 0 && (
+          <SelectStockTable
+            selectedStocks={selectedStocks}
+            setSelectedStocks={setSelectedStocks}
+          />
+        )}
         {stage === 1 && <TrainParamsForm />}
       </StepContent>
 

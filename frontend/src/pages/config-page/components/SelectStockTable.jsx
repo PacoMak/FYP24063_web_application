@@ -12,6 +12,8 @@ import {
   TextField,
 } from "@mui/material";
 import { SearchIcon } from "../../../icons";
+import { useTickerList } from "../../../api";
+import { exchangeMapper } from "../../../mapper";
 
 const Wrapper = styled(Paper)`
   width: 80%;
@@ -83,16 +85,6 @@ const StyledSelect = styled(Select)`
   width: 20%;
   background-color: #ffffff;
   border-radius: 6px;
-  // & .MuiOutlinedInput-notchedOutline {
-  //   border-color: #1976d2;
-  // }
-  // &:hover .MuiOutlinedInput-notchedOutline {
-  //   border-color: #1565c0;
-  // }
-  // &.Mui-focused .MuiOutlinedInput-notchedOutline {
-  //   border-color: #1976d2;
-  //   border-width: 2px;
-  // }
   & .MuiSelect-select {
     padding: 8px 12px;
     color: #333333;
@@ -100,11 +92,11 @@ const StyledSelect = styled(Select)`
 `;
 
 const Left = styled(Box)`
-  flex-grow: 1;
+  width: 100%;
 `;
 
 const Right = styled(Box)`
-  flex-grow: 1;
+  width: 100%;
 `;
 
 const rowsPerPageOptions = [20];
@@ -134,234 +126,227 @@ const SearchBar = styled(TextField)`
     color: #333333;
     font-size: 0.9rem;
   }
-  // & .MuiOutlinedInput-notchedOutline {
-  //   border-color: #1976d2;
-  // }
-  // &:hover .MuiOutlinedInput-notchedOutline {
-  //   border-color: #1565c0;
-  // }
-  // &.Mui-focused .MuiOutlinedInput-notchedOutline {
-  //   border-color: #1976d2;
-  //   border-width: 2px;
-  // }
 `;
 
-export const SelectStockTable = memo(() => {
-  const areaOptions = useMemo(
-    () => [
-      "All",
-      "American Stock Exchange",
-      "Australian Securities Exchange",
-      "Chicago Futures Exchange",
-      "EUREX Futures Exchange",
-      "Foreign Exchange",
-      "Global Indices",
-      "LIFFE Futures and Options",
-      "London Stock Exchange",
-      "Minneapolis Grain Exchange",
-      "NASDAQ Stock Exchange",
-      "New York Board of Trade",
-      "New York Stock Exchange",
-      "OTC Bulletin Board",
-      "Singapore Stock Exchange",
-      "Tokyo Stock Exchange",
-      "Toronto Venture Exchange",
-      "Mutual Funds",
-      "Winnipeg Commodity Exchange",
-    ],
-    []
-  );
-
-  const [area, setArea] = useState(areaOptions[0]);
-  const [unselectedStocksTablePage, setUnselectedStocksTablePage] = useState(0);
-  const [selectedStocksTablePage, setSelectedStocksTablePage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [selectedStocks, setSelectedStocks] = useState([]);
-
-  const displayUnselectedStocks = useMemo(() => {
-    const start = unselectedStocksTablePage * rowsPerPage;
-    const end = start + rowsPerPage;
-    if (end > stocks.length) {
-      const emptyStock = Array.from(
-        { length: end - stocks.length },
-        (_, index) => ({
-          ticker: ` `.repeat(index),
-          name: "",
-          disableSelect: true,
-        })
+export const SelectStockTable = memo(
+  ({ selectedStocks, setSelectedStocks }) => {
+    const { data: tickerList, isFetching } = useTickerList();
+    const [search, setSearch] = useState("");
+    const [unselectedStocksTablePage, setUnselectedStocksTablePage] =
+      useState(0);
+    const [selectedStocksTablePage, setSelectedStocksTablePage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const areaOptions = useMemo(
+      () => ["All", ...Object.keys(exchangeMapper)],
+      []
+    );
+    const [area, setArea] = useState(areaOptions[0]);
+    const filteredTickerList = useMemo(() => {
+      if (isFetching) {
+        return [];
+      }
+      if (area == "All") {
+        return Object.values(tickerList)
+          .flat()
+          .filter(
+            ({ name, symbol }) =>
+              name.toLowerCase().includes(search.toLowerCase()) ||
+              symbol.toLowerCase().includes(search.toLowerCase())
+          );
+      }
+      return tickerList[exchangeMapper[area]].filter(
+        ({ name, symbol }) =>
+          name.toLowerCase().includes(search.toLowerCase()) ||
+          symbol.toLowerCase().includes(search.toLowerCase())
       );
-      return [...stocks.slice(start, stocks.length), ...emptyStock];
-    }
-    return stocks.slice(start, end);
-  }, [unselectedStocksTablePage, rowsPerPage]);
+    }, [tickerList, area, isFetching, search]);
 
-  const UnselectedTableCols = useMemo(
-    () => [
-      {
-        key: "ticker",
-        header: "ticker",
-        render: (stock) => stock.ticker,
-      },
-      {
-        key: "name",
-        header: "name",
-        render: (stock) => stock.name,
-      },
-      {
-        key: "select",
-        header: "",
-        render: (stock) => (
-          <SelectButton
-            variant="outlined"
-            size="small"
-            sx={{
-              visibility:
-                stock.disableSelect || selectedStocks.includes(stock)
-                  ? "hidden"
-                  : "visible",
-              minWidth: "80px",
-            }}
-            onClick={() => {
-              setSelectedStocks((prev) => [...prev, stock]);
-            }}
-          >
-            Select
-          </SelectButton>
-        ),
-      },
-    ],
-    [selectedStocks]
-  );
+    const displayUnselectedStocks = useMemo(() => {
+      const start = unselectedStocksTablePage * rowsPerPage;
+      const end = start + rowsPerPage;
+      if (end > filteredTickerList.length) {
+        const emptyStock = Array.from(
+          { length: end - filteredTickerList.length },
+          (_, index) => ({
+            symbol: ` `.repeat(index),
+            name: "",
+            disableSelect: true,
+          })
+        );
+        return [
+          ...filteredTickerList.slice(start, filteredTickerList.length),
+          ...emptyStock,
+        ];
+      }
+      return filteredTickerList.slice(start, end);
+    }, [unselectedStocksTablePage, rowsPerPage, filteredTickerList]);
 
-  const displaySelectedStocks = useMemo(() => {
-    const start = selectedStocksTablePage * rowsPerPage;
-    const end = start + rowsPerPage;
-    if (end > selectedStocks.length) {
-      const emptyStock = Array.from(
-        { length: end - selectedStocks.length },
-        (_, index) => ({
-          ticker: ` `.repeat(index),
-          name: "",
-          disableSelect: true,
-        })
-      );
-      return [...selectedStocks, ...emptyStock];
-    }
-    return selectedStocks.slice(start, end);
-  }, [selectedStocksTablePage, rowsPerPage, selectedStocks]);
-
-  const SelectedTableCols = useMemo(
-    () => [
-      {
-        key: "ticker",
-        header: "ticker",
-        render: (stock) => stock.ticker,
-      },
-      {
-        key: "name",
-        header: "name",
-        render: (stock) => stock.name,
-      },
-      {
-        key: "select",
-        header: "",
-        render: (stock) => (
-          <UnselectButton
-            variant="outlined"
-            size="small"
-            sx={{
-              visibility: stock.disableSelect ? "hidden" : "visible",
-              minWidth: "80px",
-            }}
-            onClick={() => {
-              setSelectedStocks((prev) =>
-                prev.filter((s) => s.ticker !== stock.ticker)
-              );
-            }}
-          >
-            Unselect
-          </UnselectButton>
-        ),
-      },
-    ],
-    []
-  );
-
-  return (
-    <Wrapper>
-      <Header>
-        <StyledSelect
-          size="small"
-          value={area}
-          onChange={(event) => setArea(event.target.value)}
-        >
-          {areaOptions.map((area) => (
-            <MenuItem key={area} value={area}>
-              {area}
-            </MenuItem>
-          ))}
-        </StyledSelect>
-        <SearchBar
-          variant="outlined"
-          placeholder="Search"
-          S
-          slotProps={{
-            input: {
-              endAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
-      </Header>
-      <Body>
-        <Left>
-          Unselected Stocks:
-          <TableContainer>
-            <StyledTable
+    const UnselectedTableCols = useMemo(
+      () => [
+        {
+          key: "Symbol",
+          header: "Symbol",
+          render: (stock) => stock.symbol,
+        },
+        {
+          key: "Name",
+          header: "Name",
+          render: (stock) => stock.name,
+        },
+        {
+          key: "select",
+          header: "",
+          render: (stock) => (
+            <SelectButton
+              variant="outlined"
               size="small"
-              cols={UnselectedTableCols}
-              data={displayUnselectedStocks}
-              rowKey={"ticker"}
-              page={unselectedStocksTablePage}
-              rowsPerPageOptions={rowsPerPageOptions}
-              onRowsPerPageChange={(event) => {
-                setRowsPerPage(event.target.value);
+              sx={{
+                visibility:
+                  stock.disableSelect || selectedStocks.includes(stock)
+                    ? "hidden"
+                    : "visible",
               }}
-              rowsPerPage={rowsPerPage}
-              onPageChange={(event, newPage) => {
-                setUnselectedStocksTablePage(newPage);
+              onClick={() => {
+                setSelectedStocks([...selectedStocks, stock]);
               }}
-              count={stocks.length}
-            />
-          </TableContainer>
-        </Left>
-        <Right>
-          Selected Stocks:
-          <TableContainer>
-            <StyledTable
+            >
+              Select
+            </SelectButton>
+          ),
+        },
+      ],
+      [selectedStocks]
+    );
+
+    const displaySelectedStocks = useMemo(() => {
+      const start = selectedStocksTablePage * rowsPerPage;
+      const end = start + rowsPerPage;
+      if (end > selectedStocks.length) {
+        const emptyStock = Array.from(
+          { length: end - selectedStocks.length },
+          (_, index) => ({
+            symbol: ` `.repeat(index),
+            name: "",
+            disableSelect: true,
+          })
+        );
+        return [...selectedStocks, ...emptyStock];
+      }
+      return selectedStocks.slice(start, end);
+    }, [selectedStocksTablePage, rowsPerPage, selectedStocks]);
+
+    const SelectedTableCols = useMemo(
+      () => [
+        {
+          key: "Symbol",
+          header: "Symbol",
+          render: (stock) => stock.symbol,
+        },
+        {
+          key: "Name",
+          header: "Name",
+          render: (stock) => stock.name,
+        },
+        {
+          key: "select",
+          header: "",
+          render: (stock) => (
+            <UnselectButton
+              variant="outlined"
               size="small"
-              cols={SelectedTableCols}
-              data={displaySelectedStocks}
-              rowKey={"ticker"}
-              page={selectedStocksTablePage}
-              rowsPerPageOptions={rowsPerPageOptions}
-              onRowsPerPageChange={(event) => {
-                setRowsPerPage(event.target.value);
+              sx={{
+                visibility: stock.disableSelect ? "hidden" : "visible",
               }}
-              rowsPerPage={rowsPerPage}
-              onPageChange={(event, newPage) => {
-                setSelectedStocksTablePage(newPage);
+              onClick={() => {
+                setSelectedStocks(
+                  selectedStocks.filter((s) => s.symbol !== stock.symbol)
+                );
               }}
-              count={selectedStocks.length}
-            />
-          </TableContainer>
-        </Right>
-      </Body>
-    </Wrapper>
-  );
-});
+            >
+              Unselect
+            </UnselectButton>
+          ),
+        },
+      ],
+      [selectedStocks]
+    );
+
+    return (
+      <Wrapper>
+        <Header>
+          <StyledSelect
+            size="small"
+            value={area}
+            onChange={(event) => setArea(event.target.value)}
+          >
+            {areaOptions.map((area) => (
+              <MenuItem key={area} value={area}>
+                {area}
+              </MenuItem>
+            ))}
+          </StyledSelect>
+          <SearchBar
+            variant="outlined"
+            placeholder="Search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+        </Header>
+        <Body>
+          <Left>
+            Unselected Stocks:
+            <TableContainer>
+              <StyledTable
+                cols={UnselectedTableCols}
+                data={displayUnselectedStocks}
+                rowKey={"symbol"}
+                page={unselectedStocksTablePage}
+                rowsPerPageOptions={rowsPerPageOptions}
+                onRowsPerPageChange={(event) => {
+                  setRowsPerPage(event.target.value);
+                }}
+                rowsPerPage={rowsPerPage}
+                onPageChange={(_, newPage) => {
+                  setUnselectedStocksTablePage(newPage);
+                }}
+                count={filteredTickerList.length}
+              />
+            </TableContainer>
+          </Left>
+          <Right>
+            Selected Stocks:
+            <TableContainer>
+              <StyledTable
+                size="small"
+                cols={SelectedTableCols}
+                data={displaySelectedStocks}
+                rowKey={"symbol"}
+                page={selectedStocksTablePage}
+                rowsPerPageOptions={rowsPerPageOptions}
+                onRowsPerPageChange={(event) => {
+                  setRowsPerPage(event.target.value);
+                }}
+                rowsPerPage={rowsPerPage}
+                onPageChange={(event, newPage) => {
+                  setSelectedStocksTablePage(newPage);
+                }}
+                count={selectedStocks.length}
+              />
+            </TableContainer>
+          </Right>
+        </Body>
+      </Wrapper>
+    );
+  }
+);
 
 SelectStockTable.displayName = "SelectStockTable";

@@ -2,6 +2,7 @@ import {
   Table as MuiTable,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TablePagination,
   TableRow,
@@ -11,7 +12,7 @@ import { memo } from "react";
 export const Table = memo(
   ({ className, rowKey, data, cols, onRowClick, ...props }) => {
     return (
-      <MuiTable className={className} {...props}>
+      <MuiTable className={className} size="small">
         <TableHead>
           <TableRow>
             {cols.map((col) => (
@@ -35,7 +36,11 @@ export const Table = memo(
             </TableRow>
           ))}
         </TableBody>
-        <TablePagination {...props} />
+        <TableFooter>
+          <TableRow>
+            <TablePagination {...props} />
+          </TableRow>
+        </TableFooter>
       </MuiTable>
     );
   }
