@@ -6,7 +6,7 @@ export const routes = [
   {
     path: ROUTES.Dashboard.path,
     element: (
-      <BasePage>
+      <BasePage title={"Model Performance"}>
         <DashboardPage />
       </BasePage>
     ),
@@ -14,7 +14,7 @@ export const routes = [
   {
     path: ROUTES.Config.path,
     element: (
-      <BasePage>
+      <BasePage title={"Train New Model"}>
         <ConfigPage />
       </BasePage>
     ),
@@ -22,7 +22,7 @@ export const routes = [
   {
     path: ROUTES.Models.path,
     element: (
-      <BasePage>
+      <BasePage title={"Trained Models"}>
         <ModelsPage />
       </BasePage>
     ),

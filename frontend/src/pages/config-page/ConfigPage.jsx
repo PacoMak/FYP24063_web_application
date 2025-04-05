@@ -13,11 +13,9 @@ import { SelectStockTable, TrainParamsForm } from "./components";
 const Wrapper = styled(Box)`
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   width: 100%;
   margin: 0 auto;
   gap: 1rem;
-  height: 100%;
 `;
 
 const StyledStepper = styled(Stepper)`
@@ -56,35 +54,14 @@ const StyledStepper = styled(Stepper)`
 `;
 
 const StepContent = styled(Box)`
-  height: 100%;
-`;
-
-const ButtonRow = styled(Box)`
+  flex-grow: 1;
+  overflow: auto;
   display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 1rem;
+  flex-direction: column;
+  overflow: visible;
 `;
 
-const NextButton = styled(Button)`
-  background-color: #1976d2;
-  color: #ffffff;
-  padding: 0.5rem 2rem;
-  border-radius: 6px;
-  &:hover {
-    background-color: #1565c0;
-  }
-`;
-
-const BackButton = styled(Button)`
-  background-color: #f5f5f5;
-  color: #333333;
-  padding: 0.5rem 2rem;
-  border-radius: 6px;
-  &:hover {
-    background-color: #e0e0e0;
-  }
-`;
+const StepperContainer = styled(Box)``;
 
 export const ConfigPage = memo(() => {
   const [stage, setStage] = useState(0);
@@ -108,35 +85,16 @@ export const ConfigPage = memo(() => {
           </Step>
         ))}
       </StyledStepper>
-
       <StepContent>
         {stage === 0 && (
           <SelectStockTable
             selectedStocks={selectedStocks}
             setSelectedStocks={setSelectedStocks}
+            setStage={setStage}
           />
         )}
-        {stage === 1 && <TrainParamsForm />}
+        {stage === 1 && <TrainParamsForm setStage={setStage} />}
       </StepContent>
-
-      <ButtonRow>
-        {stage > 0 && (
-          <BackButton
-            onClick={() => setStage((prev) => prev - 1)}
-            variant="outlined"
-          >
-            Back
-          </BackButton>
-        )}
-        {stage < steps.length - 1 && (
-          <NextButton
-            onClick={() => setStage((prev) => prev + 1)}
-            variant="contained"
-          >
-            Next
-          </NextButton>
-        )}
-      </ButtonRow>
     </Wrapper>
   );
 });

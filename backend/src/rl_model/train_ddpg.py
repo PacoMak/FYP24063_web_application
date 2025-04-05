@@ -215,7 +215,7 @@ def test(agent, env, assets, model_id):
         filename=model_paths["return_over_time_graph"],
     )
     with open(model_paths["return_over_time"], "w") as f:
-        json.dump(return_history["ddpg"], f)
+        json.dump(return_history, f)
     return
 
 
@@ -224,14 +224,25 @@ if __name__ == "__main__":
 
     parameters = {
         "name": temp_model_id,
-        "assets": ["APA", "TSLA"],
+        "assets": [
+            "AAPL",
+            "MSFT",
+            "GOOGL",
+            "AMZN",
+            "TSLA",
+            "JNJ",
+            "PG",
+            "KO",
+            "XOM",
+            "GE",
+        ],
         "rebalance_window": 1,
         "tx_fee_per_share": 0.005,
         "principal": 1000000,
         "num_epoch": 5,
-        "train_start_date": "2015-01-01",
-        "train_end_date": "2017-12-31",
-        "test_start_date": "2018-01-01",
+        "train_start_date": "2020-01-01",
+        "train_end_date": "2021-12-31",
+        "test_start_date": "2022-01-01",
         "test_end_date": "2024-12-31",
         "alpha": 0.0005,
         "beta": 0.0025,

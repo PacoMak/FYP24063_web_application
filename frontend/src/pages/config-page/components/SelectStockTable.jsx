@@ -1,7 +1,6 @@
 import { memo, useMemo, useState } from "react";
 import { Table } from "../../../components";
 import styled from "styled-components";
-import { stocks } from "../../../data";
 import {
   Box,
   Button,
@@ -26,9 +25,7 @@ const Wrapper = styled(Paper)`
   gap: 1rem;
 `;
 
-const TableContainer = styled.div`
-  height: 100%
-  overflow: auto;
+const TableContainer = styled(Box)`
   &::-webkit-scrollbar {
     width: 12px;
   }
@@ -93,10 +90,12 @@ const StyledSelect = styled(Select)`
 
 const Left = styled(Box)`
   width: 100%;
+  height: 100%;
 `;
 
 const Right = styled(Box)`
   width: 100%;
+  height: 100%;
 `;
 
 const rowsPerPageOptions = [20];
@@ -109,8 +108,6 @@ const Header = styled(Box)`
 
 const Body = styled(Box)`
   display: flex;
-  flex: auto auto;
-  flex-grow: 1;
   gap: 1rem;
 `;
 
@@ -127,9 +124,22 @@ const SearchBar = styled(TextField)`
     font-size: 0.9rem;
   }
 `;
-
+const NextButton = styled(Button)`
+  background-color: #1976d2;
+  color: #ffffff;
+  padding: 0.5rem 2rem;
+  border-radius: 6px;
+  &:hover {
+    background-color: #1565c0;
+  }
+`;
+const ButtonRow = styled(Box)`
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+`;
 export const SelectStockTable = memo(
-  ({ selectedStocks, setSelectedStocks }) => {
+  ({ selectedStocks, setSelectedStocks, setStage }) => {
     const { data: tickerList, isFetching } = useTickerList();
     const [search, setSearch] = useState("");
     const [unselectedStocksTablePage, setUnselectedStocksTablePage] =
@@ -263,7 +273,7 @@ export const SelectStockTable = memo(
                 );
               }}
             >
-              Unselect
+              Remove
             </UnselectButton>
           ),
         },
@@ -306,6 +316,7 @@ export const SelectStockTable = memo(
             Unselected Stocks:
             <TableContainer>
               <StyledTable
+                size="small"
                 cols={UnselectedTableCols}
                 data={displayUnselectedStocks}
                 rowKey={"symbol"}
@@ -344,6 +355,15 @@ export const SelectStockTable = memo(
             </TableContainer>
           </Right>
         </Body>
+        <ButtonRow>
+          <NextButton
+            onClick={() => {
+              setStage((prev) => prev + 1);
+            }}
+          >
+            Next
+          </NextButton>
+        </ButtonRow>
       </Wrapper>
     );
   }
