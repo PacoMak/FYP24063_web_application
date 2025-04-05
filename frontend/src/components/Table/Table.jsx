@@ -10,9 +10,17 @@ import {
 import { memo } from "react";
 
 export const Table = memo(
-  ({ className, rowKey, data, cols, onRowClick, ...props }) => {
+  ({
+    className,
+    rowKey,
+    data,
+    cols,
+    onRowClick,
+    size = "medium",
+    ...props
+  }) => {
     return (
-      <MuiTable className={className} size="small">
+      <MuiTable className={className} size={size}>
         <TableHead>
           <TableRow>
             {cols.map((col) => (

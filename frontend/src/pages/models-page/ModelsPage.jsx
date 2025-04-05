@@ -228,7 +228,7 @@ export const ModelsPage = memo(() => {
             setPage(newPage);
           }}
           onRowClick={(datum) => {
-            navigate(`${ROUTES.Dashboard.render(datum.id)}`);
+            navigate(`${ROUTES.Dashboard.render(datum.model_id)}`);
           }}
           count={models.length}
         />

@@ -2,3 +2,6 @@ export * from "./axios";
 export * from "./useStocksHistory";
 export * from "./useTickerList";
 export * from "./useModelList";
+export * from "./useTrainingResult";
+export * from "./useModel";
+export * from "./useTestingResult";

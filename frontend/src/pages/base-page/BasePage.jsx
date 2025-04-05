@@ -6,26 +6,41 @@ import styled from "styled-components";
 const StyledBox = styled(Box)`
   flex-grow: 1;
   height: 100vh;
-  overflow: auto;
   box-sizing: border-box;
   background: ${({ theme }) => theme.colors.body.background};
-  padding: 1rem 2rem;
+  padding: 1rem 1rem;
   display: flex;
   flex-direction: column;
 `;
 
-export const BasePage = memo(({ children }) => {
+const Wrapper = styled(Box)`
+  display: flex;
+  height: 100%;
+  overflow: auto;
+  background: ${({ theme }) => theme.colors.body.background};
+`;
+const Title = styled.span`
+  font-size: 1.5rem;
+  border-bottom: 3px solid #505050;
+  padding-bottom: 2px;
+  padding-right: 5px;
+  margin-left: 1rem;
+  color: #505050;
+`;
+export const BasePage = memo(({ children, title }) => {
   const drawerWidth = 250;
   return (
-    <Box sx={{ display: "flex", height: "100%" }}>
+    <Wrapper sx={{ display: "flex", height: "100%" }}>
       <CssBaseline />
       <AppBar drawerWidth={drawerWidth} />
       <SideBar drawerWidth={drawerWidth} />
       <StyledBox component="main">
         <Toolbar />
+        <Box>{title && <Title>{title}</Title>}</Box>
+
         {children}
       </StyledBox>
-    </Box>
+    </Wrapper>
   );
 });
 

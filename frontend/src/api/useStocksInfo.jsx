@@ -6,8 +6,9 @@ const getStocksInfo = async (tickers) => {
   );
   return response.data;
 };
-export const useStocksInfo = (tickers) => {
+export const useStocksInfo = (tickers, options) => {
   return useQuery({
+    ...options,
     queryKey: ["stock"],
     queryFn: () => getStocksInfo(tickers),
   });

@@ -15,6 +15,7 @@ export const FormikDateField = memo(({ formik, name, label, ...props }) => {
         textField: {
           error: Boolean(formik.errors[name]),
           helperText: formik.errors[name],
+          fullWidth: true,
         },
         FormHelperTextProps: {
           style: {

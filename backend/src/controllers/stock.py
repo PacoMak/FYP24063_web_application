@@ -4,14 +4,18 @@ from ..services import StockService
 stock = Blueprint("stock", __name__)
 stock_service = StockService()
 
+
 @stock.route("/tickers", methods=["GET"])
 def get_exchange_tickers():
     try:
         tickers = stock_service.get_exchange_tickers()
-        return Response(response=json.dumps(tickers),status=200,mimetype="application/json")
+        return Response(
+            response=json.dumps(tickers), status=200, mimetype="application/json"
+        )
     except:
-        return Response(respone="internal error",status=501)
-    
+        return Response(respone="internal error", status=501)
+
+
 @stock.route("/stocks/history", methods=["GET"])
 def get_stocks_history():
     try:

@@ -1,8 +1,8 @@
 export const ROUTES = Object.freeze({
   Dashboard: {
     key: "DASHBOARD",
-    path: "/model/:id",
-    render: (id) => `/model/${id}`,
+    path: "/model/:model_id",
+    render: (model_id) => `/model/${model_id}`,
   },
   Config: {
     key: "CONFIG",
