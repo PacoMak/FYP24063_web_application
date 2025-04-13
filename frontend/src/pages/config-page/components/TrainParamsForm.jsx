@@ -2,11 +2,9 @@ import { memo, useMemo } from "react";
 import dayjs from "dayjs";
 import { useFormik } from "formik";
 import { trainning_params_schema } from "../../../yup";
-import { FormikTextField } from "./FormikTextField";
-import { FormikDateField } from "./FormikDateField";
-import { Card, Box, Typography, Button } from "@mui/material";
-import { useOverlay } from "../../../context/useOverlay";
+import { Card, Box, Button, TextField } from "@mui/material";
 import styled from "styled-components";
+import { DatePicker } from "@mui/x-date-pickers";
 
 const Wrapper = styled(Card)`
   height: 100%;
@@ -55,124 +53,196 @@ const ButtonRow = styled(Box)`
   padding: 1rem;
 `;
 export const TrainParamsForm = memo(({ setStage }) => {
-  const { showErrorDialog } = useOverlay();
+  const initialValues = useMemo(() => ({
+    tau: 0.001,
+    alpha: 0.00025,
+    beta: 0.00025,
+    gamma: 0.9,
+    batchSize: 8,
+    epochs: 40,
+    rebalanceWindow: 10,
+    principle: 10000,
+    trainingStartDate: dayjs().subtract(1, "month"),
+    trainingEndDate: dayjs(),
+  }));
 
-  const fields = useMemo(
-    () => [
-      {
-        label: "tau",
-        name: "tau",
-        initValue: 0.001,
-        type: "number",
-      },
-      {
-        label: "alpha",
-        name: "alpha",
-        initValue: 0.00025,
-        type: "number",
-      },
-      {
-        label: "beta",
-        name: "beta",
-        initValue: 0.00025,
-        type: "number",
-      },
-      {
-        label: "gamma",
-        name: "gamma",
-        initValue: 0.9,
-        type: "number",
-      },
-      {
-        label: "batch size",
-        name: "batchSize",
-        initValue: 8,
-        type: "number",
-      },
-      {
-        label: "epochs",
-        name: "epochs",
-        initValue: 40,
-        type: "number",
-      },
-      {
-        label: "rebalance window",
-        name: "rebalanceWindow",
-        initValue: 10,
-        type: "number",
-      },
-      {
-        label: "principle",
-        name: "principle",
-        initValue: 10000,
-        type: "number",
-      },
-      {
-        label: "training start date",
-        name: "trainingStartDate",
-        initValue: dayjs(),
-        type: "date",
-      },
-      {
-        label: "training end date",
-        name: "trainingEndDate",
-        initValue: dayjs(),
-        type: "date",
-      },
-    ],
-    []
-  );
-  const initialValues = useMemo(
-    () =>
-      fields.reduce(
-        (acc, field) => {
-          acc[field.name] = field.initValue;
-          return acc;
-        },
-        {
-          stocks: [],
-        }
-      ),
-    [fields]
-  );
   const formik = useFormik({
     initialValues,
     validationSchema: trainning_params_schema,
-
-    validate: async (values) => {
-      try {
-        await trainning_params_schema.validate(values);
-      } catch (err) {
-        showErrorDialog(err.message);
-      }
-    },
     onSubmit: (values) => {
       values = { ...values };
-      values.startDate = values.startDate.format("YYYY-MM-DD");
-      values.endDate = values.endDate.format("YYYY-MM-DD");
+      values.trainingStartDate = values.trainingStartDate.format("YYYY-MM-DD");
+      values.trainingEndDate = values.trainingEndDate.format("YYYY-MM-DD");
     },
   });
-
   return (
     <Wrapper>
       <Title>Parameters</Title>
       <StyledForm>
-        {fields.map(({ label, name, type }) => (
-          <StyledRow key={name}>
-            {["string", "number"].includes(type) && (
-              <FormikTextField
-                formik={formik}
-                label={label}
-                name={name}
-                type={type}
-              />
-            )}
-
-            {["date"].includes(type) && (
-              <FormikDateField formik={formik} label={label} name={name} />
-            )}
-          </StyledRow>
-        ))}
+        <StyledRow>
+          <TextField
+            fullWidth
+            label="tau"
+            value={formik.values["tau"]}
+            name="tau"
+            type="number"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched["tau"] && Boolean(formik.errors["tau"])}
+            helperText={formik.touched["tau"] && formik.errors["tau"]}
+          />
+        </StyledRow>
+        <StyledRow>
+          <TextField
+            fullWidth
+            label="alpha"
+            value={formik.values["alpha"]}
+            name="alpha"
+            type="number"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched["alpha"] && Boolean(formik.errors["alpha"])}
+            helperText={formik.touched["alpha"] && formik.errors["alpha"]}
+          />
+        </StyledRow>
+        <StyledRow>
+          <TextField
+            fullWidth
+            label="beta"
+            value={formik.values["beta"]}
+            name="beta"
+            type="number"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched["beta"] && Boolean(formik.errors["beta"])}
+            helperText={formik.touched["beta"] && formik.errors["beta"]}
+          />
+        </StyledRow>
+        <StyledRow>
+          <TextField
+            fullWidth
+            label="gamma"
+            value={formik.values["gamma"]}
+            name="gamma"
+            type="number"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched["gamma"] && Boolean(formik.errors["gamma"])}
+            helperText={formik.touched["gamma"] && formik.errors["gamma"]}
+          />
+        </StyledRow>
+        <StyledRow>
+          <TextField
+            fullWidth
+            label="batch size"
+            value={formik.values["batchSize"]}
+            name="batchSize"
+            type="number"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={
+              formik.touched["batchSize"] && Boolean(formik.errors["batchSize"])
+            }
+            helperText={
+              formik.touched["batchSize"] && formik.errors["batchSize"]
+            }
+          />
+        </StyledRow>
+        <StyledRow>
+          <TextField
+            fullWidth
+            label="epochs"
+            value={formik.values["epochs"]}
+            name="epochs"
+            type="number"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched["epochs"] && Boolean(formik.errors["epochs"])}
+            helperText={formik.touched["epochs"] && formik.errors["epochs"]}
+          />
+        </StyledRow>
+        <StyledRow>
+          <TextField
+            fullWidth
+            label="rebalance window"
+            value={formik.values["rebalanceWindow"]}
+            name="rebalanceWindow"
+            type="number"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={
+              formik.touched["rebalanceWindow"] &&
+              Boolean(formik.errors["rebalanceWindow"])
+            }
+            helperText={
+              formik.touched["rebalanceWindow"] &&
+              formik.errors["rebalanceWindow"]
+            }
+          />
+        </StyledRow>
+        <StyledRow>
+          <TextField
+            fullWidth
+            label="principle"
+            value={formik.values["principle"]}
+            name="principle"
+            type="number"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={
+              formik.touched["principle"] && Boolean(formik.errors["principle"])
+            }
+            helperText={
+              formik.touched["principle"] && formik.errors["principle"]
+            }
+          />
+        </StyledRow>
+        <StyledRow>
+          <DatePicker
+            label="Training Start Date"
+            name="trainingStartDate"
+            value={formik.values["trainingStartDate"]}
+            onChange={(value) => {
+              formik.setFieldValue("trainingStartDate", value, true);
+              formik.validateField("trainingStartDate");
+            }}
+            slotProps={{
+              textField: {
+                error: Boolean(formik.errors["trainingStartDate"]),
+                helperText: formik.errors["trainingStartDate"],
+                fullWidth: true,
+              },
+              FormHelperTextProps: {
+                style: {
+                  color: formik.errors["trainingStartDate"] ? "red" : "inherit",
+                },
+              },
+            }}
+          />
+        </StyledRow>
+        <StyledRow>
+          <DatePicker
+            label="Training End Date"
+            name="trainingEndDate"
+            value={formik.values["trainingEndDate"]}
+            onChange={(value) => {
+              formik.setFieldValue("trainingEndDate", value, true);
+              formik.validateField("trainingEndDate");
+            }}
+            slotProps={{
+              textField: {
+                error: Boolean(formik.errors["trainingEndDate"]),
+                helperText: formik.errors["trainingEndDate"],
+                fullWidth: true,
+              },
+              FormHelperTextProps: {
+                style: {
+                  color: formik.errors["trainingEndDate"] ? "red" : "inherit",
+                },
+              },
+            }}
+          />
+        </StyledRow>
       </StyledForm>
       <ButtonRow>
         <BackButton
@@ -181,7 +251,10 @@ export const TrainParamsForm = memo(({ setStage }) => {
         >
           Back
         </BackButton>
-        <NextButton onClick={() => setStage((prev) => prev + 1)}>
+        <NextButton
+          onClick={() => setStage((prev) => prev + 1)}
+          disabled={Object.keys(formik.errors).length > 0}
+        >
           Next
         </NextButton>
       </ButtonRow>

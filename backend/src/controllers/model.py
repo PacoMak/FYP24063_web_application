@@ -79,8 +79,8 @@ def test_model(model_id):
         body = request.get_json(force=True)
         start_date = body.get("start_date", "2020-07-01")
         end_date = body.get("end_date", "2024-07-31")
-        model_service.test_model(start_date, end_date, model_id)
-        return Response(response=json.dumps("testing started"), status=200)
+        result = model_service.test_model(start_date, end_date, model_id)
+        return Response(response=json.dumps(result), status=200)
     except Exception as e:
         return Response(response=f"Internal error: {e}", status=501)
 

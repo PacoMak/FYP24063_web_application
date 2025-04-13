@@ -84,41 +84,41 @@ def train(agent, env, num_epoch, model_id):
                 target_critic_path=model_paths["target_critic"],
             )
             xAxis = range(1, i + 1)
-            plot_graph(
-                title="Total return over epoch",
-                x_label="Epoch",
-                y_label="Total return",
-                xAxis=xAxis,
-                yAxis=return_history,
-                filename=model_paths["return_over_epoch_graph"],
-            )
+            # plot_graph(
+            #     title="Total return over epoch",
+            #     x_label="Epoch",
+            #     y_label="Total return",
+            #     xAxis=xAxis,
+            #     yAxis=return_history,
+            #     filename=model_paths["return_over_epoch_graph"],
+            # )
 
-            plot_graph(
-                title="Sharpe Ratio over epoch",
-                x_label="Epoch",
-                y_label="Sharpe Ratio",
-                xAxis=xAxis,
-                yAxis=sharpe_ratio_history,
-                filename=model_paths["sharpe_ratio_over_epoch_graph"],
-            )
+            # plot_graph(
+            #     title="Sharpe Ratio over epoch",
+            #     x_label="Epoch",
+            #     y_label="Sharpe Ratio",
+            #     xAxis=xAxis,
+            #     yAxis=sharpe_ratio_history,
+            #     filename=model_paths["sharpe_ratio_over_epoch_graph"],
+            # )
 
-            plot_graph(
-                title="Actor Loss",
-                x_label="Progress",
-                y_label="Actor Loss",
-                xAxis=xAxis,
-                yAxis=actor_loss_history,
-                filename=model_paths["actor_loss_graph"],
-            )
+            # plot_graph(
+            #     title="Actor Loss",
+            #     x_label="Progress",
+            #     y_label="Actor Loss",
+            #     xAxis=xAxis,
+            #     yAxis=actor_loss_history,
+            #     filename=model_paths["actor_loss_graph"],
+            # )
 
-            plot_graph(
-                title="Critic Loss",
-                x_label="Progress",
-                y_label="Critic Loss",
-                xAxis=xAxis,
-                yAxis=critic_loss_history,
-                filename=model_paths["critic_loss_graph"],
-            )
+            # plot_graph(
+            #     title="Critic Loss",
+            #     x_label="Progress",
+            #     y_label="Critic Loss",
+            #     xAxis=xAxis,
+            #     yAxis=critic_loss_history,
+            #     filename=model_paths["critic_loss_graph"],
+            # )
         print(
             f"------Episode {i} Summary: Total Return {total_return:.2f}; Sharpe Ratio {sharpe_ratio:.5f};------\n"
         )
@@ -133,24 +133,24 @@ def train(agent, env, num_epoch, model_id):
         critic_path=model_paths["critic"],
         target_critic_path=model_paths["target_critic"],
     )
-    xAxis = range(1, num_epoch + 1)
-    plot_graph(
-        title="Total return over epoch",
-        x_label="Epoch",
-        y_label="Total return",
-        xAxis=xAxis,
-        yAxis=return_history,
-        filename=model_paths["return_over_epoch_graph"],
-    )
+    # xAxis = range(1, num_epoch + 1)
+    # plot_graph(
+    #     title="Total return over epoch",
+    #     x_label="Epoch",
+    #     y_label="Total return",
+    #     xAxis=xAxis,
+    #     yAxis=return_history,
+    #     filename=model_paths["return_over_epoch_graph"],
+    # )
 
-    plot_graph(
-        title="Sharpe Ratio over epoch",
-        x_label="Epoch",
-        y_label="Sharpe Ratio",
-        xAxis=xAxis,
-        yAxis=sharpe_ratio_history,
-        filename=model_paths["sharpe_ratio_over_epoch_graph"],
-    )
+    # plot_graph(
+    #     title="Sharpe Ratio over epoch",
+    #     x_label="Epoch",
+    #     y_label="Sharpe Ratio",
+    #     xAxis=xAxis,
+    #     yAxis=sharpe_ratio_history,
+    #     filename=model_paths["sharpe_ratio_over_epoch_graph"],
+    # )
     with open(model_paths["return_over_epoch"], "w") as f:
         json.dump(return_history["ddpg"], f)
     with open(model_paths["sharpe_ratio_over_epoch"], "w") as f:
@@ -206,17 +206,17 @@ def test(agent, env, assets, model_id):
 
     # if modes["basic_MPT"] == 1:
     #     return_history["basic_MPT"] = basic_mpt_test(env, assets, rebalance_window)
-    plot_graph(
-        title="Cumulative return over time",
-        x_label="Time",
-        y_label="Cumulative return",
-        xAxis=range(1, len(return_history[list(return_history.keys())[0]]) + 1),
-        yAxis=return_history,
-        filename=model_paths["return_over_time_graph"],
-    )
+    # plot_graph(
+    #     title="Cumulative return over time",
+    #     x_label="Time",
+    #     y_label="Cumulative return",
+    #     xAxis=range(1, len(return_history[list(return_history.keys())[0]]) + 1),
+    #     yAxis=return_history,
+    #     filename=model_paths["return_over_time_graph"],
+    # )
     with open(model_paths["return_over_time"], "w") as f:
         json.dump(return_history, f)
-    return
+    return return_history
 
 
 if __name__ == "__main__":
