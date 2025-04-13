@@ -1,5 +1,5 @@
-import { Box, Button, Card, Typography } from "@mui/material";
-import { memo, useMemo } from "react";
+import { Box, Button, Card, TextField, Typography } from "@mui/material";
+import { memo, useMemo, useState } from "react";
 import styled from "styled-components";
 import {
   PortfolioValueChart,
@@ -7,15 +7,17 @@ import {
   ReturnOverTimeChart,
   StockPriceTable,
 } from "./components";
-import { RETURN_OVER_TIME } from "../../data";
+import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "../../constants";
 import {
   useModel,
   useStocksHistory,
   useTestingResult,
+  useTestModel,
   useTrainingResult,
 } from "../../api";
+import { DatePicker } from "@mui/x-date-pickers";
 
 const Wrapper = styled(Box)`
   display: flex;
@@ -27,6 +29,7 @@ const Wrapper = styled(Box)`
 const Head = styled(Box)`
   flex: 0 0 auto;
   display: flex;
+  align-items: center;
   gap: 1rem;
   padding: 1rem 0 0 1rem;
 `;
@@ -67,11 +70,15 @@ const CardWrapper = styled(Card)`
   flex-direction: column;
   padding: 1rem;
 `;
-
+const StyledDatePicker = styled(DatePicker)`
+  background-color: white;
+`;
 export const DashboardPage = memo(() => {
   const navigate = useNavigate();
   const { model_id } = useParams();
-
+  const { mutate: testModelMutate } = useTestModel(model_id);
+  const [testingStartDate, setTestingStartDate] = useState(null);
+  const [testingEndDate, setTestingEndDate] = useState(null);
   const { data: trainingResult, isFetching: isTrainingResultFetching } =
     useTrainingResult(model_id);
   const { data: testingResult, isFetching: isTestingResultFetching } =
@@ -164,6 +171,39 @@ export const DashboardPage = memo(() => {
           }}
         >
           Back
+        </Button>
+        Test from
+        <StyledDatePicker
+          name="testing start date"
+          label="testing start date"
+          value={testingStartDate}
+          onChange={(e) => {
+            setTestingStartDate(e);
+          }}
+        />
+        to
+        <StyledDatePicker
+          name="testing end date"
+          label="testing end date"
+          value={testingEndDate}
+          onChange={(e) => {
+            setTestingEndDate(e);
+          }}
+        />
+        <Button
+          variant="contained"
+          onClick={() => {
+            if (!testingStartDate || !testingEndDate) {
+              return;
+            }
+
+            testModelMutate(
+              testingStartDate.format("YYYY-MM-DD"),
+              testingEndDate.format("YYYY-MM-DD")
+            );
+          }}
+        >
+          Test
         </Button>
       </Head>
       <Body>

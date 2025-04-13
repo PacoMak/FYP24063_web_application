@@ -130,17 +130,8 @@ class ModelService:
             rebalance_window=rebalance_window,
             tx_fee_per_share=tx_fee_per_share,
         )
-
-        testing_thread = threading.Thread(
-            target=test,
-            kwargs={
-                "agent": agent,
-                "env": testing_env,
-                "assets": assets,
-                "model_id": model_id,
-            },
-        )
-        testing_thread.start()
+        result = test(agent=agent, env=testing_env, model_id=model_id, assets=assets)
+        return result
 
     def is_model_trained(self, model_id):
         model_paths = get_model_paths(model_id)
