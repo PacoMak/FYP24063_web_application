@@ -76,6 +76,7 @@ export const ConfigPage = memo(() => {
   const formik = useFormik({
     initialValues: initialTrainingParams,
     validationSchema: trainning_params_schema,
+    validateOnMount: true,
     onSubmit: (values) => {
       values.trainingStartDate = values.trainingStartDate.format("YYYY-MM-DD");
       values.trainingEndDate = values.trainingEndDate.format("YYYY-MM-DD");

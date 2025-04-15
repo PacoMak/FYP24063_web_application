@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants";
 import { DeleteIcon } from "../../icons";
 import { useDeleteModel, useModelList } from "../../api";
+import { useOverlay } from "../../context";
 
 const Wrapper = styled(Box)`
   display: flex;
@@ -97,6 +98,7 @@ const StyledDeleteIcon = styled(DeleteIcon)`
 `;
 const rowsPerPageOptions = [10];
 export const ModelsPage = memo(() => {
+  const { showSpinner, hideSpinner, showErrorDialog } = useOverlay();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedModels, setSelectedModels] = useState([]);
@@ -127,11 +129,19 @@ export const ModelsPage = memo(() => {
     return models.slice(start, end);
   }, [page, rowsPerPage, models]);
   const handleDelete = useCallback(async () => {
-    await Promise.all(
-      selectedModels.map((model) => {
-        return deleteModelAsync(model.model_id);
-      })
-    );
+    try {
+      showSpinner();
+      await Promise.all(
+        selectedModels.map((model) => {
+          return deleteModelAsync(model.model_id);
+        })
+      );
+    } catch (e) {
+      showErrorDialog("Error", e.message);
+    } finally {
+      hideSpinner();
+    }
+
     setSelectedModels([]);
   }, [deleteModelAsync, selectedModels]);
 
