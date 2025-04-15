@@ -11,6 +11,8 @@ import {
 import { memo, useEffect, useState } from "react";
 import { useTrainModel } from "../../../api";
 import { useOverlay } from "../../../context";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../../constants";
 const StyledPaper = styled(Card)`
   height: 100%;
   border: 1px solid ${({ theme }) => theme.palette.divider};
@@ -101,7 +103,7 @@ export const TrainingLog = memo(
     const [modelId, setModelId] = useState(null);
     const [logs, setLogs] = useState([]);
     const { mutateAsync: trainModelAsync } = useTrainModel();
-
+    const navigate = useNavigate();
     // Handle SSE for logs
     useEffect(() => {
       let eventSource;
@@ -220,7 +222,9 @@ export const TrainingLog = memo(
             variant="contained"
             $activate={trainingEnd}
             disabled={!trainingEnd}
-            onClick={() => {}}
+            onClick={() => {
+              navigate(ROUTES.Models.path);
+            }}
           >
             Finish
           </FinishButton>
