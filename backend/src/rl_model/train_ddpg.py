@@ -44,118 +44,124 @@ def get_model_paths(model_id):
     }
 
 
-def train(agent, env, num_epoch, model_id):
-    model_paths = get_model_paths(model_id)
-    is_training_mode = True
-    return_history = {"ddpg": []}
-    sharpe_ratio_history = {"ddpg": []}
-    actor_loss_history = {"ddpg": []}
-    critic_loss_history = {"ddpg": []}
-    np.random.seed(0)
+def train(agent, env, num_epoch, model_id, log_fn=None):
+    try:
+        if not log_fn:
+            log_fn = print
+        model_paths = get_model_paths(model_id)
+        is_training_mode = True
+        return_history = {"ddpg": []}
+        sharpe_ratio_history = {"ddpg": []}
+        actor_loss_history = {"ddpg": []}
+        critic_loss_history = {"ddpg": []}
+        np.random.seed(0)
 
-    print("--------------------DDPG Training--------------------")
-    for i in range(1, num_epoch + 1):
-        print(f"-----------------Episode {i}-----------------")
-        observation = env.restart()
-        done = 0
-        total_return = 0
-        total_actor_loss = 0
-        total_critic_loss = 0
-        while not done:
-            action = agent.choose_action(observation, is_training_mode)
-            new_state, reward, done = env.step(action)
-            agent.remember(observation, action, reward, new_state, done)
-            actor_loss, critic_loss = agent.learn()
-            total_actor_loss += actor_loss
-            total_critic_loss += critic_loss
-            total_return += reward
-            observation = new_state
-        return_history["ddpg"].append(total_return)
-        sharpe_ratio = env.sharpe_ratio()
-        sharpe_ratio_history["ddpg"].append(sharpe_ratio)
-        actor_loss_history["ddpg"].append(total_actor_loss)
-        critic_loss_history["ddpg"].append(total_critic_loss)
+        log_fn("--------------------DDPG Training--------------------")
+        for i in range(1, num_epoch + 1):
+            log_fn(f"-----------------Episode {i}-----------------")
+            observation = env.restart()
+            done = 0
+            total_return = 0
+            total_actor_loss = 0
+            total_critic_loss = 0
+            while not done:
+                action = agent.choose_action(observation, is_training_mode)
+                new_state, reward, done = env.step(action)
+                agent.remember(observation, action, reward, new_state, done)
+                actor_loss, critic_loss = agent.learn()
+                total_actor_loss += actor_loss
+                total_critic_loss += critic_loss
+                total_return += reward
+                observation = new_state
+            return_history["ddpg"].append(total_return)
+            sharpe_ratio = env.sharpe_ratio()
+            sharpe_ratio_history["ddpg"].append(sharpe_ratio)
+            actor_loss_history["ddpg"].append(total_actor_loss)
+            critic_loss_history["ddpg"].append(total_critic_loss)
 
-        if i % 5 == 0:
-            agent.save_models(
-                actor_path=model_paths["actor"],
-                target_actor_path=model_paths["target_actor"],
-                critic_path=model_paths["critic"],
-                target_critic_path=model_paths["target_critic"],
+            if i % 5 == 0:
+                agent.save_models(
+                    actor_path=model_paths["actor"],
+                    target_actor_path=model_paths["target_actor"],
+                    critic_path=model_paths["critic"],
+                    target_critic_path=model_paths["target_critic"],
+                )
+                xAxis = range(1, i + 1)
+                # plot_graph(
+                #     title="Total return over epoch",
+                #     x_label="Epoch",
+                #     y_label="Total return",
+                #     xAxis=xAxis,
+                #     yAxis=return_history,
+                #     filename=model_paths["return_over_epoch_graph"],
+                # )
+
+                # plot_graph(
+                #     title="Sharpe Ratio over epoch",
+                #     x_label="Epoch",
+                #     y_label="Sharpe Ratio",
+                #     xAxis=xAxis,
+                #     yAxis=sharpe_ratio_history,
+                #     filename=model_paths["sharpe_ratio_over_epoch_graph"],
+                # )
+
+                # plot_graph(
+                #     title="Actor Loss",
+                #     x_label="Progress",
+                #     y_label="Actor Loss",
+                #     xAxis=xAxis,
+                #     yAxis=actor_loss_history,
+                #     filename=model_paths["actor_loss_graph"],
+                # )
+
+                # plot_graph(
+                #     title="Critic Loss",
+                #     x_label="Progress",
+                #     y_label="Critic Loss",
+                #     xAxis=xAxis,
+                #     yAxis=critic_loss_history,
+                #     filename=model_paths["critic_loss_graph"],
+                # )
+            log_fn(
+                f"------Episode {i} Summary: Total Return {total_return:.2f}; Sharpe Ratio {sharpe_ratio:.5f};------\n"
             )
-            xAxis = range(1, i + 1)
-            # plot_graph(
-            #     title="Total return over epoch",
-            #     x_label="Epoch",
-            #     y_label="Total return",
-            #     xAxis=xAxis,
-            #     yAxis=return_history,
-            #     filename=model_paths["return_over_epoch_graph"],
-            # )
 
-            # plot_graph(
-            #     title="Sharpe Ratio over epoch",
-            #     x_label="Epoch",
-            #     y_label="Sharpe Ratio",
-            #     xAxis=xAxis,
-            #     yAxis=sharpe_ratio_history,
-            #     filename=model_paths["sharpe_ratio_over_epoch_graph"],
-            # )
-
-            # plot_graph(
-            #     title="Actor Loss",
-            #     x_label="Progress",
-            #     y_label="Actor Loss",
-            #     xAxis=xAxis,
-            #     yAxis=actor_loss_history,
-            #     filename=model_paths["actor_loss_graph"],
-            # )
-
-            # plot_graph(
-            #     title="Critic Loss",
-            #     x_label="Progress",
-            #     y_label="Critic Loss",
-            #     xAxis=xAxis,
-            #     yAxis=critic_loss_history,
-            #     filename=model_paths["critic_loss_graph"],
-            # )
-        print(
-            f"------Episode {i} Summary: Total Return {total_return:.2f}; Sharpe Ratio {sharpe_ratio:.5f};------\n"
+        log_fn(
+            f"DDPG average performance: Total Return {np.mean(return_history['ddpg'])}; Sharpe Ratio {np.mean(sharpe_ratio_history['ddpg'])}"
         )
 
-    print(
-        f"DDPG average performance: Total Return {np.mean(return_history['ddpg'])}; Sharpe Ratio {np.mean(sharpe_ratio_history['ddpg'])}"
-    )
+        agent.save_models(
+            actor_path=model_paths["actor"],
+            target_actor_path=model_paths["target_actor"],
+            critic_path=model_paths["critic"],
+            target_critic_path=model_paths["target_critic"],
+        )
+        # xAxis = range(1, num_epoch + 1)
+        # plot_graph(
+        #     title="Total return over epoch",
+        #     x_label="Epoch",
+        #     y_label="Total return",
+        #     xAxis=xAxis,
+        #     yAxis=return_history,
+        #     filename=model_paths["return_over_epoch_graph"],
+        # )
 
-    agent.save_models(
-        actor_path=model_paths["actor"],
-        target_actor_path=model_paths["target_actor"],
-        critic_path=model_paths["critic"],
-        target_critic_path=model_paths["target_critic"],
-    )
-    # xAxis = range(1, num_epoch + 1)
-    # plot_graph(
-    #     title="Total return over epoch",
-    #     x_label="Epoch",
-    #     y_label="Total return",
-    #     xAxis=xAxis,
-    #     yAxis=return_history,
-    #     filename=model_paths["return_over_epoch_graph"],
-    # )
-
-    # plot_graph(
-    #     title="Sharpe Ratio over epoch",
-    #     x_label="Epoch",
-    #     y_label="Sharpe Ratio",
-    #     xAxis=xAxis,
-    #     yAxis=sharpe_ratio_history,
-    #     filename=model_paths["sharpe_ratio_over_epoch_graph"],
-    # )
-    with open(model_paths["return_over_epoch"], "w") as f:
-        json.dump(return_history["ddpg"], f)
-    with open(model_paths["sharpe_ratio_over_epoch"], "w") as f:
-        json.dump(sharpe_ratio_history["ddpg"], f)
-    return
+        # plot_graph(
+        #     title="Sharpe Ratio over epoch",
+        #     x_label="Epoch",
+        #     y_label="Sharpe Ratio",
+        #     xAxis=xAxis,
+        #     yAxis=sharpe_ratio_history,
+        #     filename=model_paths["sharpe_ratio_over_epoch_graph"],
+        # )
+        with open(model_paths["return_over_epoch"], "w") as f:
+            json.dump(return_history["ddpg"], f)
+        with open(model_paths["sharpe_ratio_over_epoch"], "w") as f:
+            json.dump(sharpe_ratio_history["ddpg"], f)
+        log_fn(f"--------------------DDPG Training End--------------------")
+        return
+    except Exception as e:
+        log_fn(f"Error during training: {str(e)}")
 
 
 def test(agent, env, assets, model_id):

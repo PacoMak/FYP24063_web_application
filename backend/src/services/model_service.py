@@ -1,7 +1,6 @@
-from enum import Enum
 import os
-import uuid_utils as uuid
 from flask import json
+from queue import Queue
 from ..rl_model import (
     train,
     get_model_paths,
@@ -10,13 +9,37 @@ from ..rl_model import (
     TradingSimulator,
     test,
 )
-from ..errors import FileNotFoundException
+from ..errors import FileNotFoundException, ModelNotFoundException
 import threading
+import shutil
 
 
 class ModelService:
     def __init__(self):
-        pass
+        self.log_queues = {}
+        self.threads = {}
+
+    def log_message(self, model_id, message):
+        if model_id not in self.log_queues:
+            self.log_queues[model_id] = Queue()
+        self.log_queues[model_id].put(message)
+
+    def get_training_logs_stream(self, model_id):
+        if model_id not in self.log_queues:
+            return None
+        queue = self.log_queues.get(model_id, Queue())
+        while True:
+            try:
+                message = queue.get()
+                yield f"data: {message}\n\n"
+            except Exception as e:
+                break
+
+    def delete_model(self, model_id):
+        model_paths = get_model_paths(model_id)
+        if not os.path.isdir(model_paths["model_dir"]):
+            raise ModelNotFoundException(f"Model not found")
+        shutil.rmtree(model_paths["model_dir"])
 
     def train_model(
         self,
@@ -32,8 +55,9 @@ class ModelService:
         gamma,
         tau,
         batch_size,
+        model_id,
+        model_name,
     ):
-        model_id = str(uuid.uuid4())
         model_paths = get_model_paths(model_id)
         if not os.path.isdir(model_paths["model_dir"]):
             os.makedirs(model_paths["model_dir"])
@@ -80,6 +104,7 @@ class ModelService:
             "gamma": gamma,
             "tau": tau,
             "batch_size": batch_size,
+            "model_name": model_name,
         }
         with open(model_paths["params"], "w") as f:
             json.dump(parameters, f, indent=4)
@@ -90,8 +115,10 @@ class ModelService:
                 "env": training_env,
                 "num_epoch": num_epoch,
                 "model_id": model_id,
+                "log_fn": lambda msg: self.log_message(model_id, msg),
             },
         )
+        self.threads[model_id] = training_thread
         training_thread.start()
 
     def test_model(self, start_date, end_date, model_id):

@@ -21,11 +21,11 @@ const Wrapper = styled(Box)`
 `;
 const Title = styled.span`
   font-size: 1.5rem;
-  border-bottom: 3px solid #505050;
+  border-bottom: 3px solid ${({ theme }) => theme.colors.title.border};
   padding-bottom: 2px;
   padding-right: 5px;
   margin-left: 1rem;
-  color: #505050;
+  color: ${({ theme }) => theme.colors.title.color};
 `;
 export const BasePage = memo(({ children, title }) => {
   const drawerWidth = 250;

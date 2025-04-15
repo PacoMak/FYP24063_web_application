@@ -1,6 +1,7 @@
 from flask import Blueprint, Response, json, request
 from ..services import ModelService
-from ..errors import FileNotFoundException
+from ..errors import FileNotFoundException, ModelNotFoundException
+import uuid_utils as uuid
 
 model = Blueprint("model", __name__)
 model_service = ModelService()
@@ -9,6 +10,7 @@ model_service = ModelService()
 @model.route("/model/train", methods=["POST"])
 def train_model():
     try:
+        model_id = str(uuid.uuid4())
         body = request.get_json(force=True)
         assets = body.get(
             "assets",
@@ -25,6 +27,7 @@ def train_model():
         gamma = body.get("gamma", 0.99)
         tau = body.get("tau", 0.09)
         batch_size = body.get("batch_size", 128)
+        model_name = body.get("model_name", "default")
         model_service.train_model(
             assets=assets,
             rebalance_window=rebalance_window,
@@ -38,10 +41,32 @@ def train_model():
             gamma=gamma,
             tau=tau,
             batch_size=batch_size,
+            model_id=model_id,
+            model_name=model_name,
         )
-        return Response(response="Training started", status=200)
+        return Response(response=model_id, status=200)
     except Exception as e:
         return Response(response=f"Internal error: {e}", status=501)
+
+
+@model.route("/model/<model_id>", methods=["DELETE"])
+def delete_model(model_id):
+    try:
+        model_service.delete_model(model_id)
+        return Response(status=200)
+    except ModelNotFoundException as e:
+        return Response(response=f"Error: {e}", status=e.status_code)
+    except Exception as e:
+        return Response(response=f"Internal error: {e}", status=501)
+
+
+@model.route("/model/train/<model_id>/logs", methods=["GET"])
+def get_model_train_logs(model_id):
+    return Response(
+        model_service.get_training_logs_stream(model_id),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+    )
 
 
 @model.route("/model/train/<model_id>", methods=["GET"])
@@ -81,17 +106,6 @@ def test_model(model_id):
         end_date = body.get("end_date", "2024-07-31")
         result = model_service.test_model(start_date, end_date, model_id)
         return Response(response=json.dumps(result), status=200)
-    except Exception as e:
-        return Response(response=f"Internal error: {e}", status=501)
-
-
-@model.route("/model/test/<model_id>", methods=["GET"])
-def get_model_test_metrics(model_id):
-    try:
-        response = model_service.get_return_over_time_json(model_id)
-        return Response(response=json.dumps(response), status=200)
-    except FileNotFoundException as e:
-        return Response(response=f"File not found: {e}", status=e.status_code)
     except Exception as e:
         return Response(response=f"Internal error: {e}", status=501)
 

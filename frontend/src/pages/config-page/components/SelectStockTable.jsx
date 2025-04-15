@@ -42,12 +42,26 @@ const TableContainer = styled(Box)`
   }
 `;
 const SelectButton = styled(Button)`
-  background-color: #1976d2;
-  color: #ffffff;
+  background-color: ${({ theme }) =>
+    theme.colors.selectStocks.button.select.background};
+  color: ${({ theme }) => theme.colors.selectStocks.button.select.color};
+  &:hover {
+    background-color: ${({ theme }) =>
+      theme.colors.selectStocks.button.select.hover.background};
+    color: ${({ theme }) =>
+      theme.colors.selectStocks.button.select.hover.color};
+  }
 `;
-const UnselectButton = styled(Button)`
-  background-color: #e53935;
-  color: #ffffff;
+const RemoveButton = styled(Button)`
+  background-color: ${({ theme }) =>
+    theme.colors.selectStocks.button.remove.background};
+  color: ${({ theme }) => theme.colors.selectStocks.button.remove.color};
+  &:hover {
+    background-color: ${({ theme }) =>
+      theme.colors.selectStocks.button.remove.hover.background};
+    color: ${({ theme }) =>
+      theme.colors.selectStocks.button.remove.hover.color};
+  }
 `;
 const StyledTable = styled(Table)`
   thead {
@@ -57,21 +71,25 @@ const StyledTable = styled(Table)`
   }
 
   .MuiTableCell-head {
-    background-color: #1976d2;
-    color: #ffffff;
+    background-color: ${({ theme }) =>
+      theme.colors.selectStocks.table.header.background};
+    color: ${({ theme }) => theme.colors.selectStocks.table.header.color};
   }
   .MuiTableRow-root {
     &:hover {
-      background-color: #f5f5f5;
+      background-color: ${({ theme }) =>
+        theme.colors.selectStocks.table.body.hover.background};
     }
-    background-color: #ffffff;
+    background-color: ${({ theme }) =>
+      theme.colors.selectStocks.table.body.background};
   }
   .MuiTableCell-body {
-    color: #333333;
+    color: ${({ theme }) => theme.colors.selectStocks.table.body.color};
   }
   .MuiTablePagination-root {
-    background-color: #ffffff;
-    color: #333333;
+    background-color: ${({ theme }) =>
+      theme.colors.selectStocks.table.pagination.background};
+    color: ${({ theme }) => theme.colors.selectStocks.table.pagination.color};
     position: sticky;
     bottom: 0;
     z-index: 2;
@@ -80,11 +98,12 @@ const StyledTable = styled(Table)`
 
 const StyledSelect = styled(Select)`
   width: 20%;
-  background-color: #ffffff;
+  background-color: ${({ theme }) =>
+    theme.colors.selectStocks.dropdown.background};
   border-radius: 6px;
   & .MuiSelect-select {
     padding: 8px 12px;
-    color: #333333;
+    color: ${({ theme }) => theme.colors.selectStocks.dropdown.color};
   }
 `;
 
@@ -114,23 +133,28 @@ const Body = styled(Box)`
 const SearchBar = styled(TextField)`
   width: 25%;
   & .MuiInputBase-root {
-    background-color: #ffffff;
+    background-color: ${({ theme }) =>
+      theme.colors.selectStocks.searchBar.background};
     border-radius: 6px;
     padding: 4px 8px;
   }
   & .MuiInputBase-input {
     padding: 8px 12px;
-    color: #333333;
+    color: ${({ theme }) => theme.colors.selectStocks.searchBar.color};
     font-size: 0.9rem;
   }
 `;
 const NextButton = styled(Button)`
-  background-color: #1976d2;
-  color: #ffffff;
+  background-color: ${({ $activate, theme }) =>
+    $activate
+      ? theme.colors.button.next.activate.background
+      : theme.colors.button.next.deactivate.background};
+  color: ${({ theme }) => theme.colors.button.next.activate.color};
   padding: 0.5rem 2rem;
   border-radius: 6px;
   &:hover {
-    background-color: #1565c0;
+    background-color: ${({ theme }) =>
+      theme.colors.button.next.hover.background};
   }
 `;
 const ButtonRow = styled(Box)`
@@ -261,7 +285,7 @@ export const SelectStockTable = memo(
           key: "select",
           header: "",
           render: (stock) => (
-            <UnselectButton
+            <RemoveButton
               variant="outlined"
               size="small"
               sx={{
@@ -274,7 +298,7 @@ export const SelectStockTable = memo(
               }}
             >
               Remove
-            </UnselectButton>
+            </RemoveButton>
           ),
         },
       ],
@@ -360,6 +384,8 @@ export const SelectStockTable = memo(
             onClick={() => {
               setStage((prev) => prev + 1);
             }}
+            $activate={selectedStocks.length >= 2}
+            disabled={selectedStocks.length < 2}
           >
             Next
           </NextButton>

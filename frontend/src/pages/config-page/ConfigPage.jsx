@@ -1,71 +1,87 @@
-import {
-  Box,
-  Button,
-  Step,
-  StepLabel,
-  Stepper,
-  Typography,
-} from "@mui/material";
-import { memo, useState } from "react";
+import { Box, Step, StepLabel, Stepper, Typography } from "@mui/material";
+import { memo, useMemo, useState } from "react";
 import styled from "styled-components";
-import { SelectStockTable, TrainParamsForm } from "./components";
-
+import { SelectStockTable, TrainingLog, TrainParamsForm } from "./components";
+import dayjs from "dayjs";
+import { useFormik } from "formik";
+import { trainning_params_schema } from "../../yup";
 const Wrapper = styled(Box)`
   display: flex;
   flex-direction: column;
   width: 100%;
   margin: 0 auto;
   gap: 1rem;
+  height: 100%;
 `;
 
 const StyledStepper = styled(Stepper)`
   & .MuiStepLabel-label {
     font-size: 1.1rem;
-    color: #666666;
+    color: ${({ theme }) => theme.colors.stepper.incompleted.color};
   }
 
   & .MuiStepLabel-label.Mui-active {
-    color: #1976d2;
+    color: ${({ theme }) => theme.colors.stepper.active.color};
     font-weight: 600;
   }
 
   & .MuiStepLabel-label.Mui-completed {
-    color: #2e7d32;
+    color: ${({ theme }) => theme.colors.stepper.completed.color};
   }
 
   & .MuiStepIcon-root {
     width: 2rem;
     height: 2rem;
-    color: #e0e0e0;
+    color: ${({ theme }) => theme.colors.stepper.incompleted.background};
   }
 
   & .MuiStepIcon-root.Mui-active {
-    color: #1976d2;
+    color: ${({ theme }) => theme.colors.stepper.active.background};
   }
 
   & .MuiStepIcon-root.Mui-completed {
-    color: #2e7d32;
+    color: ${({ theme }) => theme.colors.stepper.completed.background};
   }
 
   & .MuiStepConnector-line {
-    border-color: #e0e0e0;
+    border-color: ${({ theme }) => theme.colors.stepper.line.color};
     border-width: 2px;
   }
 `;
 
 const StepContent = styled(Box)`
-  flex-grow: 1;
-  overflow: auto;
   display: flex;
   flex-direction: column;
-  overflow: visible;
 `;
-
-const StepperContainer = styled(Box)``;
 
 export const ConfigPage = memo(() => {
   const [stage, setStage] = useState(0);
   const [selectedStocks, setSelectedStocks] = useState([]);
+  const initialTrainingParams = useMemo(
+    () => ({
+      modelName: "",
+      tau: 0.001,
+      alpha: 0.00025,
+      beta: 0.00025,
+      gamma: 0.9,
+      batchSize: 8,
+      epochs: 40,
+      rebalanceWindow: 10,
+      principle: 10000,
+      trainingStartDate: dayjs().subtract(2, "year"),
+      trainingEndDate: dayjs().subtract(1, "month"),
+    }),
+    []
+  );
+  const formik = useFormik({
+    initialValues: initialTrainingParams,
+    validationSchema: trainning_params_schema,
+    validateOnMount: true,
+    onSubmit: (values) => {
+      values.trainingStartDate = values.trainingStartDate.format("YYYY-MM-DD");
+      values.trainingEndDate = values.trainingEndDate.format("YYYY-MM-DD");
+    },
+  });
   const steps = [
     "Select Stocks",
     "Set Training Params",
@@ -93,7 +109,14 @@ export const ConfigPage = memo(() => {
             setStage={setStage}
           />
         )}
-        {stage === 1 && <TrainParamsForm setStage={setStage} />}
+        {stage === 1 && <TrainParamsForm setStage={setStage} formik={formik} />}
+        {stage === 2 && (
+          <TrainingLog
+            selectedStocks={selectedStocks}
+            trainingParams={formik.values}
+            setStage={setStage}
+          />
+        )}
       </StepContent>
     </Wrapper>
   );

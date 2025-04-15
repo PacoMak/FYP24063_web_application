@@ -5,7 +5,8 @@ import { Table } from "../../components";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants";
 import { DeleteIcon } from "../../icons";
-import { useModelList } from "../../api";
+import { useDeleteModel, useModelList } from "../../api";
+import { useOverlay } from "../../context";
 
 const Wrapper = styled(Box)`
   display: flex;
@@ -19,6 +20,11 @@ const Wrapper = styled(Box)`
 const DeleteButton = styled(Button)`
   background-color: ${({ theme }) => theme.colors.button.delete.background};
   color: ${({ theme }) => theme.colors.button.delete.color};
+  &:hover {
+    background-color: ${({ theme }) =>
+      theme.colors.button.delete.hover.background};
+    color: ${({ theme }) => theme.colors.button.delete.hover.color};
+  }
 `;
 
 const ButtonRow = styled(Box)`
@@ -92,10 +98,12 @@ const StyledDeleteIcon = styled(DeleteIcon)`
 `;
 const rowsPerPageOptions = [10];
 export const ModelsPage = memo(() => {
+  const { showSpinner, hideSpinner, showErrorDialog } = useOverlay();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedModels, setSelectedModels] = useState([]);
   const { data: modelList, isFetching } = useModelList();
+  const { mutateAsync: deleteModelAsync } = useDeleteModel();
   const navigate = useNavigate();
   const models = useMemo(() => {
     if (isFetching) {
@@ -120,6 +128,22 @@ export const ModelsPage = memo(() => {
 
     return models.slice(start, end);
   }, [page, rowsPerPage, models]);
+  const handleDelete = useCallback(async () => {
+    try {
+      showSpinner();
+      await Promise.all(
+        selectedModels.map((model) => {
+          return deleteModelAsync(model.model_id);
+        })
+      );
+    } catch (e) {
+      showErrorDialog("Error", e.message);
+    } finally {
+      hideSpinner();
+    }
+
+    setSelectedModels([]);
+  }, [deleteModelAsync, selectedModels]);
 
   const cols = useMemo(
     () => [
@@ -133,13 +157,15 @@ export const ModelsPage = memo(() => {
             sx={{
               visibility: model.disableSelect ? "hidden" : "visible",
             }}
-            checked={selectedModels.includes(model.id)}
+            checked={selectedModels.includes(model)}
             onChange={(event) => {
               if (event.target.checked) {
-                setSelectedModels((prev) => [...prev, model.id]);
+                setSelectedModels((prev) => [...prev, model]);
                 return;
               }
-              setSelectedModels((prev) => prev.filter((id) => id !== model.id));
+              setSelectedModels((prev) =>
+                prev.filter((m) => m.model_id !== model.model_id)
+              );
             }}
             onClick={(event) => {
               event.stopPropagation();
@@ -150,7 +176,7 @@ export const ModelsPage = memo(() => {
       {
         key: "name",
         header: "Name",
-        render: (model) => model.model_id,
+        render: (model) => model.model_name,
       },
       {
         key: "Actor_Learning_Rate",
@@ -185,22 +211,12 @@ export const ModelsPage = memo(() => {
       {
         key: "Training_Start_date",
         header: "Training Start Date",
-        render: (model) => model.train_start_date,
+        render: (model) => model.start_date,
       },
       {
         key: "Training_End_date",
         header: "Training End Date",
-        render: (model) => model.train_end_date,
-      },
-      {
-        key: "Testing_Start_date",
-        header: "Testing Start Date",
-        render: (model) => model.test_start_date,
-      },
-      {
-        key: "Testing_End_date",
-        header: "Testing End Date",
-        render: (model) => model.test_end_date,
+        render: (model) => model.end_date,
       },
     ],
     [selectedModels]
@@ -208,7 +224,7 @@ export const ModelsPage = memo(() => {
   return (
     <Wrapper>
       <ButtonRow>
-        <DeleteButton variant="contained">
+        <DeleteButton variant="contained" onClick={handleDelete}>
           <StyledDeleteIcon />
           Delete
         </DeleteButton>

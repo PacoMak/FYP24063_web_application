@@ -5,7 +5,7 @@ const StyledBox = styled.span`
   border-bottom: 4px solid black;
   padding-bottom: 2px;
   padding-right: 5px;
-  font-size: 1rem;
+  font-size: 1.5rem;
 `;
 
 export const Title = memo(({ children }) => {
