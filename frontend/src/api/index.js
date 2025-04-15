@@ -6,3 +6,4 @@ export * from "./useTrainingResult";
 export * from "./useModel";
 export * from "./useTestingResult";
 export * from "./useTestModel";
+export * from "./useTrainModel";

@@ -52,29 +52,7 @@ const ButtonRow = styled(Box)`
   margin: 0 auto;
   padding: 1rem;
 `;
-export const TrainParamsForm = memo(({ setStage }) => {
-  const initialValues = useMemo(() => ({
-    tau: 0.001,
-    alpha: 0.00025,
-    beta: 0.00025,
-    gamma: 0.9,
-    batchSize: 8,
-    epochs: 40,
-    rebalanceWindow: 10,
-    principle: 10000,
-    trainingStartDate: dayjs().subtract(1, "month"),
-    trainingEndDate: dayjs(),
-  }));
-
-  const formik = useFormik({
-    initialValues,
-    validationSchema: trainning_params_schema,
-    onSubmit: (values) => {
-      values = { ...values };
-      values.trainingStartDate = values.trainingStartDate.format("YYYY-MM-DD");
-      values.trainingEndDate = values.trainingEndDate.format("YYYY-MM-DD");
-    },
-  });
+export const TrainParamsForm = memo(({ setStage, formik }) => {
   return (
     <Wrapper>
       <Title>Parameters</Title>

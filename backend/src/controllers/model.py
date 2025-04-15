@@ -1,6 +1,7 @@
 from flask import Blueprint, Response, json, request
 from ..services import ModelService
-from ..errors import FileNotFoundException
+from ..errors import FileNotFoundException, ModelNotFoundException
+import uuid_utils as uuid
 
 model = Blueprint("model", __name__)
 model_service = ModelService()
@@ -9,6 +10,7 @@ model_service = ModelService()
 @model.route("/model/train", methods=["POST"])
 def train_model():
     try:
+        model_id = str(uuid.uuid4())
         body = request.get_json(force=True)
         assets = body.get(
             "assets",
@@ -38,10 +40,31 @@ def train_model():
             gamma=gamma,
             tau=tau,
             batch_size=batch_size,
+            model_id=model_id,
         )
-        return Response(response="Training started", status=200)
+        return Response(response=model_id, status=200)
     except Exception as e:
         return Response(response=f"Internal error: {e}", status=501)
+
+
+@model.route("/model/<model_id>/", methods=["DELETE"])
+def delete_model(model_id):
+    try:
+        model_service.delete_model(model_id)
+        return Response(status=200)
+    except ModelNotFoundException as e:
+        return Response(response=f"Error: {e}", status=e.status_code)
+    except Exception as e:
+        return Response(response=f"Internal error: {e}", status=501)
+
+
+@model.route("/model/train/<model_id>/logs", methods=["GET"])
+def get_model_train_logs(model_id):
+    return Response(
+        model_service.get_training_logs_stream(model_id),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+    )
 
 
 @model.route("/model/train/<model_id>", methods=["GET"])

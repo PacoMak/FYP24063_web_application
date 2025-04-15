@@ -17,6 +17,7 @@ import { exchangeMapper } from "../../../mapper";
 const Wrapper = styled(Paper)`
   width: 80%;
   height: 100%;
+  border: 1px solid black;
   margin: auto;
   border-radius: 8px;
   padding: 1rem;
@@ -360,6 +361,7 @@ export const SelectStockTable = memo(
             onClick={() => {
               setStage((prev) => prev + 1);
             }}
+            disabled={selectedStocks.length < 2}
           >
             Next
           </NextButton>
