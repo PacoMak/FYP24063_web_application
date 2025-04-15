@@ -4,7 +4,6 @@ export * from "./useTickerList";
 export * from "./useModelList";
 export * from "./useTrainingResult";
 export * from "./useModel";
-export * from "./useTestingResult";
 export * from "./useTestModel";
 export * from "./useTrainModel";
 export * from "./useDeleteModel";

@@ -1,5 +1,5 @@
 import { Box, Button, Card, TextField, Typography } from "@mui/material";
-import { memo, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 import {
   ChartNotAvailable,
@@ -13,11 +13,11 @@ import { ROUTES } from "../../constants";
 import {
   useModel,
   useStocksHistory,
-  useTestingResult,
   useTestModel,
   useTrainingResult,
 } from "../../api";
 import { DatePicker } from "@mui/x-date-pickers";
+import { useOverlay } from "../../context";
 
 const Wrapper = styled(Box)`
   display: flex;
@@ -74,16 +74,16 @@ const StyledDatePicker = styled(DatePicker)`
   background-color: white;
 `;
 export const DashboardPage = memo(() => {
+  const { showErrorDialog, showSpinner, hideSpinner } = useOverlay();
   const navigate = useNavigate();
   const { model_id } = useParams();
+  const [testingResult, setTestingResult] = useState(null);
   const { mutateAsync: testModelMutate } = useTestModel(model_id);
   const [testingStartDate, setTestingStartDate] = useState(null);
-  const [testingButtonClicked, setTestingButtonClicked] = useState(false);
   const [testingEndDate, setTestingEndDate] = useState(null);
   const { data: trainingResult, isFetching: isTrainingResultFetching } =
     useTrainingResult(model_id);
-  const { data: testingResult, isFetching: isTestingResultFetching } =
-    useTestingResult(model_id, { enable: testingButtonClicked });
+
   const { data: model, isFetching: isModelFetching } = useModel(model_id);
 
   const modelStocks = useMemo(() => {
@@ -120,7 +120,7 @@ export const DashboardPage = memo(() => {
   }, [isStocksHistoryFetching, stocksHistory]);
 
   const formattedReturnOverTime = useMemo(() => {
-    if (isTestingResultFetching || !testingResult) {
+    if (!testingResult) {
       return [];
     }
     const models = Object.keys(testingResult);
@@ -138,7 +138,7 @@ export const DashboardPage = memo(() => {
         }
       );
     }).slice(-100);
-  }, [isTestingResultFetching, testingResult]);
+  }, [testingResult]);
 
   const formattedReturnOverEpoch = useMemo(() => {
     if (isTrainingResultFetching) {
@@ -162,6 +162,30 @@ export const DashboardPage = memo(() => {
       };
     });
   }, [isTrainingResultFetching, trainingResult]);
+
+  const handleTestButtonOnClick = useCallback(async () => {
+    try {
+      showSpinner();
+      if (!testingStartDate || !testingEndDate) {
+        showErrorDialog("Invalid Input", "Please select start and end date");
+        return;
+      }
+      if (testingStartDate.isAfter(testingEndDate)) {
+        showErrorDialog("Invalid Input", "Start date must be before end date");
+        return;
+      }
+      const res = await testModelMutate(
+        testingStartDate.format("YYYY-MM-DD"),
+        testingEndDate.format("YYYY-MM-DD")
+      );
+      setTestingResult(res);
+    } catch (e) {
+      showErrorDialog("Error", e.message);
+    } finally {
+      hideSpinner();
+    }
+  }, [testModelMutate, testingStartDate, testingEndDate]);
+
   return (
     <Wrapper>
       <Head>
@@ -177,6 +201,7 @@ export const DashboardPage = memo(() => {
         <StyledDatePicker
           name="testing start date"
           label="testing start date"
+          maxDate={dayjs().subtract(1, "day")}
           value={testingStartDate}
           onChange={(e) => {
             setTestingStartDate(e);
@@ -186,24 +211,13 @@ export const DashboardPage = memo(() => {
         <StyledDatePicker
           name="testing end date"
           label="testing end date"
+          maxDate={dayjs().subtract(1, "day")}
           value={testingEndDate}
           onChange={(e) => {
             setTestingEndDate(e);
           }}
         />
-        <Button
-          variant="contained"
-          onClick={() => {
-            if (!testingStartDate || !testingEndDate) {
-              return;
-            }
-
-            testModelMutate(
-              testingStartDate.format("YYYY-MM-DD"),
-              testingEndDate.format("YYYY-MM-DD")
-            );
-          }}
-        >
+        <Button variant="contained" onClick={handleTestButtonOnClick}>
           Test
         </Button>
       </Head>

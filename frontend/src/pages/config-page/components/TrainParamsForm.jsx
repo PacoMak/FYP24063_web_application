@@ -2,6 +2,7 @@ import { memo } from "react";
 import { Card, Box, Button, TextField } from "@mui/material";
 import styled from "styled-components";
 import { DatePicker } from "@mui/x-date-pickers";
+import dayjs from "dayjs";
 
 const Wrapper = styled(Card)`
   height: 100%;
@@ -233,6 +234,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
               label="training start date"
               name="trainingStartDate"
               value={formik.values["trainingStartDate"]}
+              maxDate={dayjs().subtract(1, "day")}
               onChange={(value) => {
                 formik.setFieldValue("trainingStartDate", value, true);
                 formik.validateField("trainingStartDate");
@@ -261,6 +263,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
               label="training end date"
               name="trainingEndDate"
               value={formik.values["trainingEndDate"]}
+              maxDate={dayjs().subtract(1, "day")}
               onChange={(value) => {
                 formik.setFieldValue("trainingEndDate", value, true);
                 formik.validateField("trainingEndDate");

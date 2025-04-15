@@ -110,17 +110,6 @@ def test_model(model_id):
         return Response(response=f"Internal error: {e}", status=501)
 
 
-@model.route("/model/test/<model_id>", methods=["GET"])
-def get_model_test_metrics(model_id):
-    try:
-        response = model_service.get_return_over_time_json(model_id)
-        return Response(response=json.dumps(response), status=200)
-    except FileNotFoundException as e:
-        return Response(response=f"File not found: {e}", status=e.status_code)
-    except Exception as e:
-        return Response(response=f"Internal error: {e}", status=501)
-
-
 @model.route("/models", methods=["GET"])
 def get_models():
     try:
