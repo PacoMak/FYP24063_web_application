@@ -5,7 +5,7 @@ import { Table } from "../../components";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants";
 import { DeleteIcon } from "../../icons";
-import { useModelList } from "../../api";
+import { useDeleteModel, useModelList } from "../../api";
 
 const Wrapper = styled(Box)`
   display: flex;
@@ -96,6 +96,7 @@ export const ModelsPage = memo(() => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedModels, setSelectedModels] = useState([]);
   const { data: modelList, isFetching } = useModelList();
+  const { mutateAsync: deleteModelAsync } = useDeleteModel();
   const navigate = useNavigate();
   const models = useMemo(() => {
     if (isFetching) {
@@ -120,6 +121,14 @@ export const ModelsPage = memo(() => {
 
     return models.slice(start, end);
   }, [page, rowsPerPage, models]);
+  const handleDelete = useCallback(async () => {
+    await Promise.all(
+      selectedModels.map((model) => {
+        return deleteModelAsync(model.model_id);
+      })
+    );
+    setSelectedModels([]);
+  }, [deleteModelAsync, selectedModels]);
 
   const cols = useMemo(
     () => [
@@ -133,13 +142,15 @@ export const ModelsPage = memo(() => {
             sx={{
               visibility: model.disableSelect ? "hidden" : "visible",
             }}
-            checked={selectedModels.includes(model.id)}
+            checked={selectedModels.includes(model)}
             onChange={(event) => {
               if (event.target.checked) {
-                setSelectedModels((prev) => [...prev, model.id]);
+                setSelectedModels((prev) => [...prev, model]);
                 return;
               }
-              setSelectedModels((prev) => prev.filter((id) => id !== model.id));
+              setSelectedModels((prev) =>
+                prev.filter((m) => m.model_id !== model.model_id)
+              );
             }}
             onClick={(event) => {
               event.stopPropagation();
@@ -185,22 +196,12 @@ export const ModelsPage = memo(() => {
       {
         key: "Training_Start_date",
         header: "Training Start Date",
-        render: (model) => model.train_start_date,
+        render: (model) => model.start_date,
       },
       {
         key: "Training_End_date",
         header: "Training End Date",
-        render: (model) => model.train_end_date,
-      },
-      {
-        key: "Testing_Start_date",
-        header: "Testing Start Date",
-        render: (model) => model.test_start_date,
-      },
-      {
-        key: "Testing_End_date",
-        header: "Testing End Date",
-        render: (model) => model.test_end_date,
+        render: (model) => model.end_date,
       },
     ],
     [selectedModels]
@@ -208,7 +209,7 @@ export const ModelsPage = memo(() => {
   return (
     <Wrapper>
       <ButtonRow>
-        <DeleteButton variant="contained">
+        <DeleteButton variant="contained" onClick={handleDelete}>
           <StyledDeleteIcon />
           Delete
         </DeleteButton>

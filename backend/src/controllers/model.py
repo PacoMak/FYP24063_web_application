@@ -47,7 +47,7 @@ def train_model():
         return Response(response=f"Internal error: {e}", status=501)
 
 
-@model.route("/model/<model_id>/", methods=["DELETE"])
+@model.route("/model/<model_id>", methods=["DELETE"])
 def delete_model(model_id):
     try:
         model_service.delete_model(model_id)

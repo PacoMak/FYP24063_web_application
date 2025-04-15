@@ -7,3 +7,4 @@ export * from "./useModel";
 export * from "./useTestingResult";
 export * from "./useTestModel";
 export * from "./useTrainModel";
+export * from "./useDeleteModel";

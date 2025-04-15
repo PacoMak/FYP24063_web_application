@@ -7,7 +7,7 @@ const getModelList = async () => {
 };
 export const useModelList = () => {
   return useQuery({
-    queryKey: ["tickerList"],
+    queryKey: ["modelList"],
     queryFn: () => getModelList(),
   });
 };
