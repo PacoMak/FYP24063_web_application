@@ -6,6 +6,7 @@ import {
   Typography,
   Divider,
   Button,
+  alpha,
 } from "@mui/material";
 import { memo, useEffect, useState } from "react";
 import { useTrainModel } from "../../../api";
@@ -119,10 +120,7 @@ export const TrainingLog = memo(
         };
         eventSource.onerror = () => {
           setTrainingEnd(true);
-          setLogs((prevLogs) => [
-            ...prevLogs,
-            "Error: Lost connection to logs",
-          ]);
+          showErrorDialog("Error", "Lost Connection to server.");
           eventSource.close();
         };
       }
@@ -138,12 +136,18 @@ export const TrainingLog = memo(
         showSpinner();
         const payload = {
           assets: selectedStocks.map((stock) => stock.symbol),
-          batch_size: trainingParams.batchSize,
           rebalance_window: trainingParams.rebalanceWindow,
+
+          principal: trainingParams.principal,
+          num_epoch: trainingParams.epochs,
           start_date: trainingParams.startDate,
           end_date: trainingParams.endDate,
-          num_epoch: trainingParams.epochs,
-          ...trainingParams,
+          alpha: trainingParams.alpha,
+          beta: trainingParams.beta,
+          gamma: trainingParams.gamma,
+          tau: trainingParams.tau,
+          batch_size: trainingParams.batchSize,
+          model_name: trainingParams.modelName,
         };
         const modelId = await trainModelAsync(payload);
         setModelId(modelId);

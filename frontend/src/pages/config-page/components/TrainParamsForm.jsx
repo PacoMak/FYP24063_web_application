@@ -14,11 +14,21 @@ const StyledForm = styled(Box)`
   display: flex;
   flex-wrap: wrap;
   gap: 2rem;
-  padding: 2rem;
+  padding: 1.5rem 3rem;
   flex-grow: 1;
 `;
 const StyledRow = styled(Box)`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
+`;
+const StyledField = styled(Box)`
   flex: 1 1 45%;
+  min-width: 0;
+  &:only-child {
+    flex: 0 1 45%;
+  }
 `;
 const Title = styled(Box)`
   font-size: 1.5rem;
@@ -51,178 +61,226 @@ const ButtonRow = styled(Box)`
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
-  width: 95%;
+  width: 100%;
   margin: 0 auto;
   padding: 1rem;
 `;
+
 export const TrainParamsForm = memo(({ setStage, formik }) => {
   return (
     <Wrapper>
       <Title>Parameters</Title>
       <StyledForm>
         <StyledRow>
-          <TextField
-            fullWidth
-            label="tau"
-            value={formik.values["tau"]}
-            name="tau"
-            type="number"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched["tau"] && Boolean(formik.errors["tau"])}
-            helperText={formik.touched["tau"] && formik.errors["tau"]}
-          />
+          <StyledField>
+            <TextField
+              size="small"
+              fullWidth
+              label="model name"
+              value={formik.values["modelName"]}
+              name="modelName"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched["modelName"] &&
+                Boolean(formik.errors["modelName"])
+              }
+              helperText={
+                formik.touched["modelName"] && formik.errors["modelName"]
+              }
+            />
+          </StyledField>
+          <StyledField>
+            <TextField
+              size="small"
+              fullWidth
+              label="tau"
+              value={formik.values["tau"]}
+              name="tau"
+              type="number"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched["tau"] && Boolean(formik.errors["tau"])}
+              helperText={formik.touched["tau"] && formik.errors["tau"]}
+            />
+          </StyledField>
         </StyledRow>
         <StyledRow>
-          <TextField
-            fullWidth
-            label="alpha"
-            value={formik.values["alpha"]}
-            name="alpha"
-            type="number"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched["alpha"] && Boolean(formik.errors["alpha"])}
-            helperText={formik.touched["alpha"] && formik.errors["alpha"]}
-          />
+          <StyledField>
+            <TextField
+              size="small"
+              fullWidth
+              label="alpha"
+              value={formik.values["alpha"]}
+              name="alpha"
+              type="number"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched["alpha"] && Boolean(formik.errors["alpha"])}
+              helperText={formik.touched["alpha"] && formik.errors["alpha"]}
+            />
+          </StyledField>
+          <StyledField>
+            <TextField
+              size="small"
+              fullWidth
+              label="beta"
+              value={formik.values["beta"]}
+              name="beta"
+              type="number"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched["beta"] && Boolean(formik.errors["beta"])}
+              helperText={formik.touched["beta"] && formik.errors["beta"]}
+            />
+          </StyledField>
         </StyledRow>
         <StyledRow>
-          <TextField
-            fullWidth
-            label="beta"
-            value={formik.values["beta"]}
-            name="beta"
-            type="number"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched["beta"] && Boolean(formik.errors["beta"])}
-            helperText={formik.touched["beta"] && formik.errors["beta"]}
-          />
+          <StyledField>
+            <TextField
+              size="small"
+              fullWidth
+              label="gamma"
+              value={formik.values["gamma"]}
+              name="gamma"
+              type="number"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched["gamma"] && Boolean(formik.errors["gamma"])}
+              helperText={formik.touched["gamma"] && formik.errors["gamma"]}
+            />
+          </StyledField>
+          <StyledField>
+            <TextField
+              size="small"
+              fullWidth
+              label="batch size"
+              value={formik.values["batchSize"]}
+              name="batchSize"
+              type="number"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched["batchSize"] &&
+                Boolean(formik.errors["batchSize"])
+              }
+              helperText={
+                formik.touched["batchSize"] && formik.errors["batchSize"]
+              }
+            />
+          </StyledField>
         </StyledRow>
         <StyledRow>
-          <TextField
-            fullWidth
-            label="gamma"
-            value={formik.values["gamma"]}
-            name="gamma"
-            type="number"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched["gamma"] && Boolean(formik.errors["gamma"])}
-            helperText={formik.touched["gamma"] && formik.errors["gamma"]}
-          />
+          <StyledField>
+            <TextField
+              size="small"
+              fullWidth
+              label="epochs"
+              value={formik.values["epochs"]}
+              name="epochs"
+              type="number"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched["epochs"] && Boolean(formik.errors["epochs"])
+              }
+              helperText={formik.touched["epochs"] && formik.errors["epochs"]}
+            />
+          </StyledField>
+          <StyledField>
+            <TextField
+              size="small"
+              fullWidth
+              label="rebalance window"
+              value={formik.values["rebalanceWindow"]}
+              name="rebalanceWindow"
+              type="number"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched["rebalanceWindow"] &&
+                Boolean(formik.errors["rebalanceWindow"])
+              }
+              helperText={
+                formik.touched["rebalanceWindow"] &&
+                formik.errors["rebalanceWindow"]
+              }
+            />
+          </StyledField>
         </StyledRow>
         <StyledRow>
-          <TextField
-            fullWidth
-            label="batch size"
-            value={formik.values["batchSize"]}
-            name="batchSize"
-            type="number"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={
-              formik.touched["batchSize"] && Boolean(formik.errors["batchSize"])
-            }
-            helperText={
-              formik.touched["batchSize"] && formik.errors["batchSize"]
-            }
-          />
-        </StyledRow>
-        <StyledRow>
-          <TextField
-            fullWidth
-            label="epochs"
-            value={formik.values["epochs"]}
-            name="epochs"
-            type="number"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched["epochs"] && Boolean(formik.errors["epochs"])}
-            helperText={formik.touched["epochs"] && formik.errors["epochs"]}
-          />
-        </StyledRow>
-        <StyledRow>
-          <TextField
-            fullWidth
-            label="rebalance window"
-            value={formik.values["rebalanceWindow"]}
-            name="rebalanceWindow"
-            type="number"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={
-              formik.touched["rebalanceWindow"] &&
-              Boolean(formik.errors["rebalanceWindow"])
-            }
-            helperText={
-              formik.touched["rebalanceWindow"] &&
-              formik.errors["rebalanceWindow"]
-            }
-          />
-        </StyledRow>
-        <StyledRow>
-          <TextField
-            fullWidth
-            label="principle"
-            value={formik.values["principle"]}
-            name="principle"
-            type="number"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={
-              formik.touched["principle"] && Boolean(formik.errors["principle"])
-            }
-            helperText={
-              formik.touched["principle"] && formik.errors["principle"]
-            }
-          />
-        </StyledRow>
-        <StyledRow>
-          <DatePicker
-            label="Training Start Date"
-            name="trainingStartDate"
-            value={formik.values["trainingStartDate"]}
-            onChange={(value) => {
-              formik.setFieldValue("trainingStartDate", value, true);
-              formik.validateField("trainingStartDate");
-            }}
-            slotProps={{
-              textField: {
-                error: Boolean(formik.errors["trainingStartDate"]),
-                helperText: formik.errors["trainingStartDate"],
-                fullWidth: true,
-              },
-              FormHelperTextProps: {
-                style: {
-                  color: formik.errors["trainingStartDate"] ? "red" : "inherit",
+          <StyledField>
+            <TextField
+              size="small"
+              fullWidth
+              label="principle"
+              value={formik.values["principle"]}
+              name="principle"
+              type="number"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched["principle"] &&
+                Boolean(formik.errors["principle"])
+              }
+              helperText={
+                formik.touched["principle"] && formik.errors["principle"]
+              }
+            />
+          </StyledField>
+          <StyledField>
+            <DatePicker
+              label="training start date"
+              name="trainingStartDate"
+              value={formik.values["trainingStartDate"]}
+              onChange={(value) => {
+                formik.setFieldValue("trainingStartDate", value, true);
+                formik.validateField("trainingStartDate");
+              }}
+              slotProps={{
+                textField: {
+                  error: Boolean(formik.errors["trainingStartDate"]),
+                  helperText: formik.errors["trainingStartDate"],
+                  fullWidth: true,
+                  size: "small",
                 },
-              },
-            }}
-          />
+                FormHelperTextProps: {
+                  style: {
+                    color: formik.errors["trainingStartDate"]
+                      ? "red"
+                      : "inherit",
+                  },
+                },
+              }}
+            />
+          </StyledField>
         </StyledRow>
         <StyledRow>
-          <DatePicker
-            label="Training End Date"
-            name="trainingEndDate"
-            value={formik.values["trainingEndDate"]}
-            onChange={(value) => {
-              formik.setFieldValue("trainingEndDate", value, true);
-              formik.validateField("trainingEndDate");
-            }}
-            slotProps={{
-              textField: {
-                error: Boolean(formik.errors["trainingEndDate"]),
-                helperText: formik.errors["trainingEndDate"],
-                fullWidth: true,
-              },
-              FormHelperTextProps: {
-                style: {
-                  color: formik.errors["trainingEndDate"] ? "red" : "inherit",
+          <StyledField>
+            <DatePicker
+              label="training end date"
+              name="trainingEndDate"
+              value={formik.values["trainingEndDate"]}
+              onChange={(value) => {
+                formik.setFieldValue("trainingEndDate", value, true);
+                formik.validateField("trainingEndDate");
+              }}
+              slotProps={{
+                textField: {
+                  error: Boolean(formik.errors["trainingEndDate"]),
+                  helperText: formik.errors["trainingEndDate"],
+                  fullWidth: true,
+                  size: "small",
                 },
-              },
-            }}
-          />
+                FormHelperTextProps: {
+                  style: {
+                    color: formik.errors["trainingEndDate"] ? "red" : "inherit",
+                  },
+                },
+              }}
+            />
+          </StyledField>
+          <StyledField></StyledField>
         </StyledRow>
       </StyledForm>
       <ButtonRow>

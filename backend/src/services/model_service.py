@@ -56,6 +56,7 @@ class ModelService:
         tau,
         batch_size,
         model_id,
+        model_name,
     ):
         model_paths = get_model_paths(model_id)
         if not os.path.isdir(model_paths["model_dir"]):
@@ -103,6 +104,7 @@ class ModelService:
             "gamma": gamma,
             "tau": tau,
             "batch_size": batch_size,
+            "model_name": model_name,
         }
         with open(model_paths["params"], "w") as f:
             json.dump(parameters, f, indent=4)

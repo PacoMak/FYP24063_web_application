@@ -59,6 +59,7 @@ export const ConfigPage = memo(() => {
   const [selectedStocks, setSelectedStocks] = useState([]);
   const initialTrainingParams = useMemo(
     () => ({
+      modelName: "",
       tau: 0.001,
       alpha: 0.00025,
       beta: 0.00025,
@@ -78,7 +79,6 @@ export const ConfigPage = memo(() => {
     onSubmit: (values) => {
       values.trainingStartDate = values.trainingStartDate.format("YYYY-MM-DD");
       values.trainingEndDate = values.trainingEndDate.format("YYYY-MM-DD");
-      console.log(values);
     },
   });
   const steps = [

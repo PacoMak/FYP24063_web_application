@@ -27,6 +27,7 @@ def train_model():
         gamma = body.get("gamma", 0.99)
         tau = body.get("tau", 0.09)
         batch_size = body.get("batch_size", 128)
+        model_name = body.get("model_name", "default")
         model_service.train_model(
             assets=assets,
             rebalance_window=rebalance_window,
@@ -41,6 +42,7 @@ def train_model():
             tau=tau,
             batch_size=batch_size,
             model_id=model_id,
+            model_name=model_name,
         )
         return Response(response=model_id, status=200)
     except Exception as e:

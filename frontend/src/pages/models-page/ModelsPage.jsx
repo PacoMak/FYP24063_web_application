@@ -166,7 +166,7 @@ export const ModelsPage = memo(() => {
       {
         key: "name",
         header: "Name",
-        render: (model) => model.model_id,
+        render: (model) => model.model_name,
       },
       {
         key: "Actor_Learning_Rate",

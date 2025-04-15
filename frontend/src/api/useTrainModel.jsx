@@ -4,7 +4,6 @@ import api from "./axios";
 const trainModel = async ({
   assets,
   rebalance_window,
-  tx_fee_per_share,
   principal,
   num_epoch,
   start_date,
@@ -14,11 +13,11 @@ const trainModel = async ({
   gamma,
   tau,
   batch_size,
+  model_name,
 }) => {
   const response = await api.post(`/model/train`, {
     assets,
     rebalance_window,
-    tx_fee_per_share,
     principal,
     num_epoch,
     start_date,
@@ -28,6 +27,7 @@ const trainModel = async ({
     gamma,
     tau,
     batch_size,
+    model_name,
   });
   return response.data;
 };
