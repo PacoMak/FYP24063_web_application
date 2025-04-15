@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { memo, useEffect, useState } from "react";
 import { useTrainModel } from "../../../api";
-
+import { useOverlay } from "../../../context";
 const StyledPaper = styled(Card)`
   height: 100%;
   border: 1px solid ${({ theme }) => theme.palette.divider};
@@ -65,114 +65,165 @@ const ButtonWrapper = styled(Box)`
   align-items: center;
   padding: ${({ theme }) => theme.spacing(1)};
 `;
+const ButtonRow = styled(Box)`
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+`;
+const BackButton = styled(Button)`
+  color: ${({ theme }) => theme.colors.button.back.color};
+  background-color: ${({ theme }) => theme.colors.button.back.background};
+  padding: 0.5rem 2rem;
+  border-radius: 6px;
+  &:hover {
+    background-color: ${({ theme }) =>
+      theme.colors.button.back.hover.background};
+  }
+`;
+const FinishButton = styled(Button)`
+  background-color: ${({ $activate, theme }) =>
+    $activate
+      ? theme.colors.button.next.activate.background
+      : theme.colors.button.next.deactivate.background};
+  color: ${({ theme }) => theme.colors.button.next.activate.color};
+  padding: 0.5rem 2rem;
+  border-radius: 6px;
+  &:hover {
+    ${({ theme }) => theme.colors.button.next.hover.background};
+  }
+`;
+export const TrainingLog = memo(
+  ({ selectedStocks, trainingParams, setStage }) => {
+    const { showSpinner, hideSpinner, showErrorDialog } = useOverlay();
+    const [trainingStart, setTrainingStart] = useState(false);
+    const [trainingEnd, setTrainingEnd] = useState(false);
+    const [modelId, setModelId] = useState(null);
+    const [logs, setLogs] = useState([]);
+    const { mutateAsync: trainModelAsync } = useTrainModel();
 
-export const TrainingLog = memo(({ selectedStocks, trainingParams }) => {
-  const [trainingStart, setTrainingStart] = useState(false);
-  const [trainingEnd, setTrainingEnd] = useState(false);
-  const [modelId, setModelId] = useState(null);
-  const [logs, setLogs] = useState([]);
-  const { mutateAsync: trainModelAsync } = useTrainModel();
-
-  // Handle SSE for logs
-  useEffect(() => {
-    let eventSource;
-    if (modelId) {
-      eventSource = new EventSource(
-        `http://127.0.0.1:5000/model/train/${modelId}/logs`
-      );
-      eventSource.onmessage = (event) => {
-        if (
-          event.data ===
-          "--------------------DDPG Training End--------------------"
-        ) {
+    // Handle SSE for logs
+    useEffect(() => {
+      let eventSource;
+      if (modelId) {
+        eventSource = new EventSource(
+          `http://127.0.0.1:5000/model/train/${modelId}/logs`
+        );
+        eventSource.onmessage = (event) => {
+          if (
+            event.data ===
+            "--------------------DDPG Training End--------------------"
+          ) {
+            setTrainingEnd(true);
+          }
+          setLogs((prevLogs) => [...prevLogs, event.data]);
+        };
+        eventSource.onerror = () => {
           setTrainingEnd(true);
+          setLogs((prevLogs) => [
+            ...prevLogs,
+            "Error: Lost connection to logs",
+          ]);
+          eventSource.close();
+        };
+      }
+      return () => {
+        if (eventSource) {
+          eventSource.close();
         }
-        setLogs((prevLogs) => [...prevLogs, event.data]);
       };
-      eventSource.onerror = () => {
-        setTrainingEnd(true);
-        setLogs((prevLogs) => [...prevLogs, "Error: Lost connection to logs"]);
-        eventSource.close();
-      };
-    }
-    return () => {
-      if (eventSource) {
-        eventSource.close();
+    }, [modelId]);
+
+    const handleStartTraining = async () => {
+      try {
+        showSpinner();
+        const payload = {
+          assets: selectedStocks.map((stock) => stock.symbol),
+          batch_size: trainingParams.batchSize,
+          rebalance_window: trainingParams.rebalanceWindow,
+          start_date: trainingParams.startDate,
+          end_date: trainingParams.endDate,
+          num_epoch: trainingParams.epochs,
+          ...trainingParams,
+        };
+        const modelId = await trainModelAsync(payload);
+        setModelId(modelId);
+        setTrainingStart(true);
+      } catch (error) {
+        showErrorDialog("Error", error);
+      } finally {
+        hideSpinner();
       }
     };
-  }, [modelId]);
 
-  const handleStartTraining = async () => {
-    try {
-      const payload = {
-        assets: selectedStocks.map((stock) => stock.symbol),
-        batch_size: trainingParams.batchSize,
-        rebalance_window: trainingParams.rebalanceWindow,
-        start_date: trainingParams.startDate,
-        end_date: trainingParams.endDate,
-        num_epoch: trainingParams.epochs,
-        ...trainingParams,
-      };
-      const modelId = await trainModelAsync(payload);
-      setModelId(modelId);
-      setTrainingStart(true);
-    } catch (error) {
-      setLogs((prevLogs) => [
-        ...prevLogs,
-        `Error: Training failed - ${error.message}`,
-      ]);
-    }
-  };
-
-  return (
-    <Wrapper elevation={3}>
-      <Typography variant="h6" fontWeight="bold" color="primary">
-        Training Log
-      </Typography>
-      <Divider />
-      <StyledPaper>
-        <Box display="flex" flexDirection="column" height="100%">
-          <Typography variant="subtitle1" gutterBottom>
-            Training Details
-          </Typography>
-          <Box mb={2}>
-            <Typography variant="body2" color="textSecondary">
-              <strong>Selected Stocks:</strong>{" "}
-              {selectedStocks?.length
-                ? selectedStocks.map((stock) => stock.symbol).join(", ")
-                : "None"}
+    return (
+      <Wrapper elevation={3}>
+        <Typography variant="h6" fontWeight="bold" color="primary">
+          Training Log
+        </Typography>
+        <Divider />
+        <StyledPaper>
+          <Box display="flex" flexDirection="column" height="100%">
+            <Typography variant="subtitle1" gutterBottom>
+              Training Details
             </Typography>
-            <Typography variant="body2" color="textSecondary" mt={1}>
-              <strong>Training Parameters:</strong>{" "}
-              {trainingParams ? JSON.stringify(trainingParams) : "None"}
+            <Box mb={2}>
+              <Typography variant="body2" color="textSecondary">
+                <strong>Selected Stocks:</strong>{" "}
+                {selectedStocks?.length
+                  ? selectedStocks.map((stock) => stock.symbol).join(", ")
+                  : "None"}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" mt={1}>
+                <strong>Training Parameters:</strong>{" "}
+                {trainingParams ? JSON.stringify(trainingParams) : "None"}
+              </Typography>
+            </Box>
+            <Typography variant="subtitle1" gutterBottom>
+              Logs
             </Typography>
+            <LogContainer>
+              {trainingStart ? (
+                <LogDisplay role="log" aria-label="Training logs">
+                  {logs.length > 0
+                    ? logs.map((log, index) => <div key={index}>{log}</div>)
+                    : "Logs will appear here..."}
+                </LogDisplay>
+              ) : (
+                <ButtonWrapper>
+                  <StyledTrainButton
+                    variant="contained"
+                    color="primary"
+                    onClick={handleStartTraining}
+                  >
+                    Start Training
+                  </StyledTrainButton>
+                </ButtonWrapper>
+              )}
+            </LogContainer>
           </Box>
-          <Typography variant="subtitle1" gutterBottom>
-            Logs
-          </Typography>
-          <LogContainer>
-            {trainingStart ? (
-              <LogDisplay role="log" aria-label="Training logs">
-                {logs.length > 0
-                  ? logs.map((log, index) => <div key={index}>{log}</div>)
-                  : "Logs will appear here..."}
-              </LogDisplay>
-            ) : (
-              <ButtonWrapper>
-                <StyledTrainButton
-                  variant="contained"
-                  color="primary"
-                  onClick={handleStartTraining}
-                >
-                  Start Training
-                </StyledTrainButton>
-              </ButtonWrapper>
-            )}
-          </LogContainer>
-        </Box>
-      </StyledPaper>
-    </Wrapper>
-  );
-});
+        </StyledPaper>
+        <ButtonRow>
+          <BackButton
+            variant="outlined"
+            onClick={() => {
+              setStage((prev) => prev - 1);
+            }}
+            disabled={trainingStart}
+          >
+            Back
+          </BackButton>
+          <FinishButton
+            variant="contained"
+            $activate={trainingEnd}
+            disabled={!trainingEnd}
+            onClick={() => {}}
+          >
+            Finish
+          </FinishButton>
+        </ButtonRow>
+      </Wrapper>
+    );
+  }
+);
 
 TrainingLog.displayName = "TrainingLog";

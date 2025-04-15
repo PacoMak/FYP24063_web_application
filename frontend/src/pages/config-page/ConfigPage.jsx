@@ -17,34 +17,34 @@ const Wrapper = styled(Box)`
 const StyledStepper = styled(Stepper)`
   & .MuiStepLabel-label {
     font-size: 1.1rem;
-    color: #666666;
+    color: ${({ theme }) => theme.colors.stepper.incompleted.color};
   }
 
   & .MuiStepLabel-label.Mui-active {
-    color: #1976d2;
+    color: ${({ theme }) => theme.colors.stepper.active.color};
     font-weight: 600;
   }
 
   & .MuiStepLabel-label.Mui-completed {
-    color: #2e7d32;
+    color: ${({ theme }) => theme.colors.stepper.completed.color};
   }
 
   & .MuiStepIcon-root {
     width: 2rem;
     height: 2rem;
-    color: #e0e0e0;
+    color: ${({ theme }) => theme.colors.stepper.incompleted.background};
   }
 
   & .MuiStepIcon-root.Mui-active {
-    color: #1976d2;
+    color: ${({ theme }) => theme.colors.stepper.active.background};
   }
 
   & .MuiStepIcon-root.Mui-completed {
-    color: #2e7d32;
+    color: ${({ theme }) => theme.colors.stepper.completed.background};
   }
 
   & .MuiStepConnector-line {
-    border-color: #e0e0e0;
+    border-color: ${({ theme }) => theme.colors.stepper.line.color};
     border-width: 2px;
   }
 `;
@@ -113,6 +113,7 @@ export const ConfigPage = memo(() => {
           <TrainingLog
             selectedStocks={selectedStocks}
             trainingParams={formik.values}
+            setStage={setStage}
           />
         )}
       </StepContent>

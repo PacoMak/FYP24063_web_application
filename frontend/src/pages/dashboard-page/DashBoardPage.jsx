@@ -2,7 +2,7 @@ import { Box, Button, Card, TextField, Typography } from "@mui/material";
 import { memo, useMemo, useState } from "react";
 import styled from "styled-components";
 import {
-  PortfolioValueChart,
+  ChartNotAvailable,
   ReturnOverEpochChart,
   ReturnOverTimeChart,
   StockPriceTable,
@@ -53,7 +53,7 @@ const RightColumn = styled(Box)`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 `;
 
 const Cell = styled(Box)`
@@ -68,7 +68,7 @@ const CardWrapper = styled(Card)`
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  padding: 1rem;
+  padding: 0.5rem;
 `;
 const StyledDatePicker = styled(DatePicker)`
   background-color: white;
@@ -76,13 +76,14 @@ const StyledDatePicker = styled(DatePicker)`
 export const DashboardPage = memo(() => {
   const navigate = useNavigate();
   const { model_id } = useParams();
-  const { mutate: testModelMutate } = useTestModel(model_id);
+  const { mutateAsync: testModelMutate } = useTestModel(model_id);
   const [testingStartDate, setTestingStartDate] = useState(null);
+  const [testingButtonClicked, setTestingButtonClicked] = useState(false);
   const [testingEndDate, setTestingEndDate] = useState(null);
   const { data: trainingResult, isFetching: isTrainingResultFetching } =
     useTrainingResult(model_id);
   const { data: testingResult, isFetching: isTestingResultFetching } =
-    useTestingResult(model_id);
+    useTestingResult(model_id, { enable: testingButtonClicked });
   const { data: model, isFetching: isModelFetching } = useModel(model_id);
 
   const modelStocks = useMemo(() => {
@@ -119,7 +120,7 @@ export const DashboardPage = memo(() => {
   }, [isStocksHistoryFetching, stocksHistory]);
 
   const formattedReturnOverTime = useMemo(() => {
-    if (isTestingResultFetching) {
+    if (isTestingResultFetching || !testingResult) {
       return [];
     }
     const models = Object.keys(testingResult);
@@ -209,33 +210,29 @@ export const DashboardPage = memo(() => {
       <Body>
         <LeftColumn>
           <Cell>
-            <Typography variant="h5" gutterBottom>
-              Stocks Status
-            </Typography>
+            <Typography gutterBottom>Stocks Status</Typography>
             <StockPriceTable data={stocksLatestInfo} />
           </Cell>
         </LeftColumn>
         <RightColumn>
           <Cell>
-            <Typography variant="h5" gutterBottom>
-              Return Over Time
-            </Typography>
+            <Typography gutterBottom>Return Over Time</Typography>
             <CardWrapper>
-              <ReturnOverTimeChart data={formattedReturnOverTime} />
+              {formattedReturnOverTime.length > 0 ? (
+                <ReturnOverTimeChart data={formattedReturnOverTime} />
+              ) : (
+                <ChartNotAvailable />
+              )}
             </CardWrapper>
           </Cell>
           <Cell>
-            <Typography variant="h5" gutterBottom>
-              Sharpe Ratio Over Epoch
-            </Typography>
+            <Typography gutterBottom>Sharpe Ratio Over Epoch</Typography>
             <CardWrapper>
               <ReturnOverTimeChart data={formattedSharpeRatioOverEpoch} />
             </CardWrapper>
           </Cell>
           <Cell>
-            <Typography variant="h5" gutterBottom>
-              Return Over Epoch
-            </Typography>
+            <Typography gutterBottom>Return Over Epoch</Typography>
             <CardWrapper>
               <ReturnOverEpochChart data={formattedReturnOverEpoch} />
             </CardWrapper>

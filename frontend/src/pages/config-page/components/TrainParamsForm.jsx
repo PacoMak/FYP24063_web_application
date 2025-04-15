@@ -1,7 +1,4 @@
-import { memo, useMemo } from "react";
-import dayjs from "dayjs";
-import { useFormik } from "formik";
-import { trainning_params_schema } from "../../../yup";
+import { memo } from "react";
 import { Card, Box, Button, TextField } from "@mui/material";
 import styled from "styled-components";
 import { DatePicker } from "@mui/x-date-pickers";
@@ -28,20 +25,26 @@ const Title = styled(Box)`
   margin: 1rem 0 0 2rem;
 `;
 const NextButton = styled(Button)`
-  background-color: #1976d2;
-  color: #ffffff;
+  background-color: ${({ $activate, theme }) =>
+    $activate
+      ? theme.colors.button.next.activate.background
+      : theme.colors.button.next.deactivate.background};
+  color: ${({ theme }) => theme.colors.button.next.activate.color};
   padding: 0.5rem 2rem;
   border-radius: 6px;
   &:hover {
-    background-color: #1565c0;
+    background-color: ${({ theme }) =>
+      theme.colors.button.next.hover.background};
   }
 `;
 const BackButton = styled(Button)`
-  color: #333333;
+  color: ${({ theme }) => theme.colors.button.back.color};
+  background-color: ${({ theme }) => theme.colors.button.back.background};
   padding: 0.5rem 2rem;
   border-radius: 6px;
   &:hover {
-    background-color: #e0e0e0;
+    background-color: ${({ theme }) =>
+      theme.colors.button.back.hover.background};
   }
 `;
 const ButtonRow = styled(Box)`
@@ -231,6 +234,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
         </BackButton>
         <NextButton
           onClick={() => setStage((prev) => prev + 1)}
+          $activate={Object.keys(formik.errors).length === 0}
           disabled={Object.keys(formik.errors).length > 0}
         >
           Next

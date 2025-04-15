@@ -11,18 +11,37 @@ export const colors = {
     background: "#f0f4f8",
     color: "#000000",
   },
+  title: {
+    border: "#505050",
+    color: "#505050",
+  },
   button: {
     delete: {
       background: "#d32f2f",
       color: "#ffffff",
-    },
-    next: {
-      background: "#1976d2",
-      color: "#ffffff",
+      hover: {
+        background: "#c62828",
+        color: "#ffffff",
+      },
     },
     back: {
-      background: "#1976d2",
-      color: "#ffffff",
+      background: "#ffffff",
+      color: "#000000",
+      hover: {
+        background: "#e0e0e0",
+      },
+    },
+    next: {
+      activate: {
+        background: "#1976d2",
+        color: "#ffffff",
+      },
+      deactivate: {
+        background: "#e0e0e0",
+      },
+      hover: {
+        background: "#1565c0",
+      },
     },
   },
   stockPriceTable: {
@@ -62,6 +81,69 @@ export const colors = {
     },
     button: {
       color: "#888",
+    },
+  },
+  stepper: {
+    incompleted: {
+      color: "#666666",
+      background: "#e0e0e0",
+    },
+    active: {
+      color: "#1976d2",
+      background: "#1976d2",
+    },
+    completed: {
+      color: "#2e7d32",
+      background: "#2e7d32",
+    },
+    line: {
+      color: "#e0e0e0",
+    },
+  },
+  selectStocks: {
+    searchBar: {
+      background: "#ffffff",
+      color: "#333333",
+    },
+    dropdown: {
+      background: "#ffffff",
+      color: "#333333",
+    },
+    button: {
+      select: {
+        background: "#1976d2",
+        color: "#ffffff",
+        hover: {
+          background: "#1565c0",
+          color: "#ffffff",
+        },
+      },
+      remove: {
+        background: "#e53935",
+        color: "#ffffff",
+        hover: {
+          background: "#d32f2f",
+          color: "#ffffff",
+        },
+      },
+    },
+    table: {
+      header: {
+        background: "#1976d2",
+        color: "#ffffff",
+      },
+      body: {
+        background: "#ffffff",
+        color: "#333333",
+        hover: {
+          background: "#dbe7f1",
+          color: "#333333",
+        },
+      },
+      pagination: {
+        background: "#ffffff",
+        color: "#333333",
+      },
     },
   },
 };

@@ -19,6 +19,11 @@ const Wrapper = styled(Box)`
 const DeleteButton = styled(Button)`
   background-color: ${({ theme }) => theme.colors.button.delete.background};
   color: ${({ theme }) => theme.colors.button.delete.color};
+  &:hover {
+    background-color: ${({ theme }) =>
+      theme.colors.button.delete.hover.background};
+    color: ${({ theme }) => theme.colors.button.delete.hover.color};
+  }
 `;
 
 const ButtonRow = styled(Box)`
