@@ -8,22 +8,24 @@ import numpy as np
 
 # Actor / Policy Network / mu
 # decide what to do based on the current state, outputs action values
-class ActorNetwork(nn.Module):
-    def __init__(self, learning_rate, n_actions, fc1_dims, fc2_dims, fc3_dims, device):
-        super(ActorNetwork, self).__init__()
+class ActorNetworkFC(nn.Module):
+    def __init__(self, learning_rate, n_actions, fc1_dims, fc2_dims, fc3_dims, name):
+        super(ActorNetworkFC, self).__init__()
+        self.name = name
         self.n_actions = n_actions
-        self.input_size = (n_actions - 1) * 4 + n_actions + 1
+        # self.input_size = (n_actions-1) * 4 + n_actions + 1
+        self.input_size = (n_actions - 1) * 7 + n_actions
         self.relu = nn.ReLU()
 
         self.fc1 = nn.Linear(self.input_size, fc1_dims)
         self.bn1 = nn.LayerNorm(fc1_dims)
-        f1 = 1.0 / np.sqrt(self.fc1.weight.data.size()[0])
+        f1 = 1.0 / np.sqrt(self.fc1.weight.data.size()[1])  # Square root of the fan-in
         nn.init.uniform_(self.fc1.weight.data, -f1, f1)
         nn.init.uniform_(self.fc1.bias.data, -f1, f1)
 
         self.fc2 = nn.Linear(fc1_dims, fc2_dims)
         self.bn2 = nn.LayerNorm(fc2_dims)
-        f2 = 1.0 / np.sqrt(self.fc2.weight.data.size()[0])
+        f2 = 1.0 / np.sqrt(self.fc2.weight.data.size()[1])  # Square root of the fan-in
         nn.init.uniform_(self.fc2.weight.data, -f2, f2)
         nn.init.uniform_(self.fc2.bias.data, -f2, f2)
 
@@ -36,9 +38,11 @@ class ActorNetwork(nn.Module):
         self.mu = nn.Linear(fc3_dims, self.n_actions)
 
         self.sigmoid = nn.Sigmoid()
+        self.softmax = nn.Softmax(dim=-1)
         self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
 
-        self.device = device
+        # self.device = T.device("cuda:0" if T.cuda.is_available() else "cpu")
+        self.device = T.device("cpu")
         self.to(self.device)
 
     def forward(self, x):
@@ -55,7 +59,8 @@ class ActorNetwork(nn.Module):
         # if (x.ndim == 1):
         #     print("actor mu:", x)
         # print("actor mu:", x)
-        x = self.sigmoid(x)
+        # x = self.sigmoid(x)
+        x = self.softmax(x)
         # if (x.ndim == 1):
         #     print("actor sigmoid:", x)
         # print("actor sigmoid:", x)

@@ -1,45 +1,43 @@
 import torch as T
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
-import numpy as np
 import os
-from .actor_network_v2 import ActorNetwork
 
 
 # Critic / Q-value Network / Q
 # evaluate state/action pairs
-class CriticNetwork(nn.Module):
-    def __init__(self, learning_rate, n_actions, lstm_size, device):
-        super(CriticNetwork, self).__init__()
-        layer_dims = (n_actions - 1) * 4 + n_actions * 2 + 1
+class CriticNetworkLSTM(nn.Module):
+    def __init__(self, learning_rate, n_actions, lstm_size, fc_size, name):
+        super(CriticNetworkLSTM, self).__init__()
+        self.name = name
+        input_size = (n_actions - 1) * 7 + n_actions * 2
+        # input_size = (n_actions-1) * 4 + n_actions + 1
         self.relu = nn.ReLU()
 
-        self.lstm1 = nn.LSTM(layer_dims, lstm_size)
-        self.__init_lstm(self.lstm1)
+        self.lstm = nn.LSTM(
+            input_size=input_size, hidden_size=lstm_size, num_layers=2, dropout=0.2
+        )
+        self.__init_lstm(self.lstm)
 
-        self.lstm2 = nn.LSTM(lstm_size, lstm_size)
-        self.__init_lstm(self.lstm2)
-
-        self.fc = nn.Linear(lstm_size, layer_dims)
-        self.bn = nn.LayerNorm(layer_dims)
-        f1 = 1.0 / np.sqrt(self.fc.weight.data.size()[0])
+        self.fc = nn.Linear(lstm_size, fc_size)
+        self.bn = nn.LayerNorm(fc_size)
+        f1 = 0.004
         nn.init.uniform_(self.fc.weight.data, -f1, f1)
         nn.init.uniform_(self.fc.bias.data, -f1, f1)
 
-        self.q = nn.Linear(layer_dims, 1)
+        self.q = nn.Linear(fc_size, 1)
 
         self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
 
-        self.device = device
+        # self.device = T.device("cuda:0" if T.cuda.is_available() else "cpu")
+        self.device = T.device("cpu")
         self.to(self.device)
 
     def forward(self, state, action):
         x = T.cat((state, action), dim=-1)
         x = x.unsqueeze(0)
-        output, (final_hidden_state, final_cell_state) = self.lstm1(x)
-        output, (final_hidden_state, final_cell_state) = self.lstm2(final_hidden_state)
-        x = final_hidden_state.squeeze(0)
+        output, (final_hidden_state, final_cell_state) = self.lstm(x)
+        x = final_hidden_state[-1]
         x = self.fc(x)
         x = self.bn(x)
         x = self.relu(x)

@@ -9,9 +9,7 @@ from scipy.optimize import minimize
 from ...utils import project_root
 
 
-# actor input_size: (n_actions - 1) * 10 + n_actions
-# critic input_size: (n_actions - 1) * 10 + n_actions * 2
-class TradingSimulatorV2:
+class TradingSimulatorAmplifier:
     def __init__(
         self,
         principal,
@@ -165,7 +163,7 @@ class TradingSimulatorV2:
 
         self.trading_dates = close_data["Date"].dt.date.astype(str).tolist()[1:]
         # self.rebalance_dates = [self.trading_dates[i] for i in range(len(self.trading_dates)) if (i+1) % rebalance_window == 0]
-        mpt_window = 30
+        mpt_window = 10
 
         rolling_cov = numpy_rolling_cov(returns.to_numpy(), mpt_window)[
             -len(self.trading_dates) - 1 :
@@ -173,7 +171,6 @@ class TradingSimulatorV2:
         rolling_exp_returns = returns.rolling(mpt_window).mean()[
             -len(self.trading_dates) - 1 :
         ]
-
         self.file_path = (
             project_root / "src" / "rl_model" / "env" / "30y-treasury-rate.csv"
         )
@@ -428,44 +425,38 @@ class TradingSimulatorV2:
         self.portfolio.append(cash_asset)
 
         # Initial observation
-        curr_close_price = np.array(
-            [x for x in self.close_price.iloc[self.time]]
-        )  # Close price of each asset at t
-        prev_close_price = np.array(
-            [x for x in self.close_price.iloc[self.time - 1]]
-        )  # Close price of each asset at t-1
-        log_return = np.log(
-            np.divide(curr_close_price, prev_close_price)
-        )  # Natural log of return
         prev_rsi = (
             np.array([x for x in self.rsi.iloc[self.time - 1]]) / 100.0
         )  # RSI of each asset at time t-1
         curr_rsi = (
             np.array([x for x in self.rsi.iloc[self.time]]) / 100.0
         )  # RSI of each asset at time t
+        dev = np.array(
+            [x for x in self.dev.iloc[self.time]]
+        )  # No. of Standard Deviation between price and the mid BollingerBand (MA20) of each asset at time t
         prev_obv = np.array([x for x in self.obv.iloc[self.time - 1]])
         curr_obv = np.array([x for x in self.obv.iloc[self.time]])
         macd = np.array([x for x in self.macd.iloc[self.time]])
         signal = np.array([x for x in self.signal.iloc[self.time]])
         diff = macd - signal
-        diff = self.min_max_scaling(diff)
-        holdings = [
-            asset.get_weighting() for asset in self.portfolio
-        ]  # Share and cash weightings
+        diff = (diff - diff.mean()) / (diff.std())
+        holdings = np.array(
+            [asset.get_weighting() for asset in self.portfolio]
+        )  # Share and cash holdings
         tangent_portfolio = self.tangent_portfolios[
             self.time
         ]  # Tangent portfolio weights
 
         initial_input = np.concatenate(
             (
-                log_return,
+                dev,
                 curr_obv,
                 prev_obv,
                 diff,
                 curr_rsi,
                 prev_rsi,
-                tangent_portfolio,
                 holdings,
+                tangent_portfolio,
             )
         )
 
@@ -497,6 +488,11 @@ class TradingSimulatorV2:
         # Adjust the weighting of each asset in the portfolio based on the new portfolio value
         # An empty action array means skipping the portfolio rebalance, not applicable in RL algorithms
         if len(action) != 0:
+            if len(action) == len(self.portfolio) - 1:
+                tangent_portfolio = self.tangent_portfolios[self.time]
+                amp = np.multiply(action, tangent_portfolio)
+                portfolio = amp / np.sum(amp)
+                action = list(portfolio) + [0]
             for i in range(len(self.portfolio)):
                 weight_adjusted_stock_value = new_value * action[i]
                 self.portfolio[i].set_weighting(action[i])
@@ -530,25 +526,19 @@ class TradingSimulatorV2:
         self.time += 1
 
         # New states
-        curr_close_price = np.array(
-            [x for x in self.close_price.iloc[self.time]]
-        )  # Close price of each asset at t
-        prev_close_price = np.array(
-            [x for x in self.close_price.iloc[self.time - 1]]
-        )  # Close price of each asset at t-1
-        log_return = np.array(
-            np.log(np.divide(curr_close_price, prev_close_price))
-        )  # Natural log of return
         prev_rsi = (
             np.array([x for x in self.rsi.iloc[self.time - 1]]) / 100.0
         )  # RSI of each asset at time t-1
         curr_rsi = np.array([x for x in self.rsi.iloc[self.time]]) / 100.0
+        dev = np.array(
+            [x for x in self.dev.iloc[self.time]]
+        )  # No. of Standard Deviation between price and the mid BollingerBand (MA20) of each asset at time t
         prev_obv = np.array([x for x in self.obv.iloc[self.time - 1]])
         curr_obv = np.array([x for x in self.obv.iloc[self.time]])
         macd = np.array([x for x in self.macd.iloc[self.time]])
         signal = np.array([x for x in self.signal.iloc[self.time]])
         diff = macd - signal
-        diff = self.min_max_scaling(diff)
+        diff = (diff - diff.mean()) / (diff.std())
         holdings = np.array(
             [asset.get_weighting() for asset in self.portfolio]
         )  # Share and cash holdings
@@ -558,14 +548,14 @@ class TradingSimulatorV2:
 
         new_state = np.concatenate(
             (
-                log_return,
+                dev,
                 curr_obv,
                 prev_obv,
                 diff,
                 curr_rsi,
                 prev_rsi,
-                tangent_portfolio,
                 holdings,
+                tangent_portfolio,
             )
         )  # Concatenate the new state variables
 

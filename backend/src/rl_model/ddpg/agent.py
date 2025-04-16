@@ -2,11 +2,13 @@ import torch as T
 import torch.nn.functional as F
 import torch.nn as nn
 import numpy as np
+import os
 from .ou_action_noise import OUActionNoise
 from .replay_buffer import ReplayBuffer
-from .actor_network_v2 import ActorNetwork
-from .critic_network_v2 import CriticNetwork
-import os
+
+from .fc import ActorNetworkFC, CriticNetworkFC
+from .lstm import ActorNetworkLSTM, CriticNetworkLSTM
+from .amplifier import ActorNetworkAmplifier, CriticNetworkAmplifier
 
 
 # alpha and beta are the learning rate for actor and critic network, gamma is the discount factor for future reward
@@ -20,47 +22,91 @@ class Agent(object):
         tau,
         gamma,
         n_actions,
-        max_size=100000,
+        model=1,
+        max_size=300000,
         batch_size=64,
-        device="cpu",
     ):
         self.gamma = gamma
         self.tau = tau
         self.memory = ReplayBuffer(max_size, input_dims, n_actions)
         self.batch_size = batch_size
-        self.model_dir = "trained_model"
+        self.model = model
 
-        self.actor = ActorNetwork(
-            learning_rate=alpha,
-            n_actions=n_actions,
-            fc1_dims=256,
-            fc2_dims=128,
-            fc3_dims=64,
-            device=device,
-        )
-
-        self.critic = CriticNetwork(
-            learning_rate=beta,
-            n_actions=n_actions,
-            lstm_size=100,
-            device=device,
-        )
-
-        self.target_actor = ActorNetwork(
-            learning_rate=alpha,
-            n_actions=n_actions,
-            fc1_dims=256,
-            fc2_dims=128,
-            fc3_dims=64,
-            device=device,
-        )
-
-        self.target_critic = CriticNetwork(
-            learning_rate=beta,
-            n_actions=n_actions,
-            lstm_size=100,
-            device=device,
-        )
+        if model == 1:
+            self.actor = ActorNetworkFC(
+                learning_rate=alpha,
+                n_actions=n_actions,
+                fc1_dims=256,
+                fc2_dims=128,
+                fc3_dims=64,
+                name="actor",
+            )
+            self.critic = CriticNetworkFC(
+                learning_rate=beta,
+                n_actions=n_actions,
+                fc1_dims=256,
+                fc2_dims=128,
+                fc3_dims=64,
+                name="critic",
+            )
+            self.target_actor = ActorNetworkFC(
+                learning_rate=alpha,
+                n_actions=n_actions,
+                fc1_dims=256,
+                fc2_dims=128,
+                fc3_dims=64,
+                name="target_actor",
+            )
+            self.target_critic = CriticNetworkFC(
+                learning_rate=beta,
+                n_actions=n_actions,
+                fc1_dims=256,
+                fc2_dims=128,
+                fc3_dims=64,
+                name="target_critic",
+            )
+        elif model == 2:
+            self.actor = ActorNetworkLSTM(
+                learning_rate=alpha,
+                n_actions=n_actions,
+                lstm_size=128,
+                fc_size=84,
+                name="actor",
+            )
+            self.critic = CriticNetworkLSTM(
+                learning_rate=beta,
+                n_actions=n_actions,
+                lstm_size=128,
+                fc_size=84,
+                name="critic",
+            )
+            self.target_actor = ActorNetworkLSTM(
+                learning_rate=alpha,
+                n_actions=n_actions,
+                lstm_size=128,
+                fc_size=84,
+                name="target_actor",
+            )
+            self.target_critic = CriticNetworkLSTM(
+                learning_rate=beta,
+                n_actions=n_actions,
+                lstm_size=128,
+                fc_size=84,
+                name="target_critic",
+            )
+        elif model == 3:
+            self.actor = ActorNetworkAmplifier(
+                learning_rate=alpha, n_actions=n_actions, name="actor"
+            )
+            self.critic = CriticNetworkAmplifier(
+                learning_rate=beta, n_actions=n_actions, name="critic"
+            )
+            self.target_actor = ActorNetworkAmplifier(
+                learning_rate=alpha, n_actions=n_actions, name="target_actor"
+            )
+            self.target_critic = CriticNetworkAmplifier(
+                learning_rate=beta, n_actions=n_actions, name="target_critic"
+            )
 
         self.noise = OUActionNoise(mu=np.zeros(n_actions), sigma=0.3, theta=0.2)
 
@@ -80,17 +126,20 @@ class Agent(object):
         # Epsilon-greedy exploration using noise
         if is_training == True:
             epsilon = np.random.rand()
-            if self.memory.mem_cntr < 3000:
+            if self.memory.mem_cntr < 5000:
                 if epsilon < 0.5:
                     mu += T.tensor(self.noise(), dtype=T.float).to(self.actor.device)
-            elif self.memory.mem_cntr < 6000:
+            elif self.memory.mem_cntr < 10000:
                 if epsilon < 0.25:
                     mu += T.tensor(self.noise(), dtype=T.float).to(self.actor.device)
             else:
                 if epsilon < 0.1:
                     mu += T.tensor(self.noise(), dtype=T.float).to(self.actor.device)
 
-        mu = self.softmax(mu)  # Ensure actions sum to 1
+        if self.model == 1 or self.model == 2:
+            mu = self.softmax(mu)  # Ensure actions sum to 1
+        elif self.model == 3:
+            mu = T.tanh(mu) + 1  # Ensure actions are between 0 and 2
 
         return mu.cpu().detach().numpy()
 
@@ -100,7 +149,7 @@ class Agent(object):
     def learn(self):
         # Does not begin learning until the replay buffer is filled with at least a batch size
         if self.memory.mem_cntr < self.batch_size:
-            return 0, 0
+            return None, None
 
         T.backends.cudnn.enabled = False
 
@@ -114,10 +163,6 @@ class Agent(object):
         new_states = T.tensor(new_states, dtype=T.float).to(self.critic.device)
         action = T.tensor(action, dtype=T.float).to(self.critic.device)
         states = T.tensor(states, dtype=T.float).to(self.critic.device)
-
-        # self.target_actor.eval()
-        # self.target_critic.eval()
-        # self.critic.eval()
 
         # Calculate the target actions like the bellman equation in Q-learning
         # The targets we want to move towards
@@ -134,18 +179,16 @@ class Agent(object):
         target = target.view(self.batch_size, 1)
 
         # Calculation of the loss function for the critic network
-        # self.critic.train()
         self.critic.optimizer.zero_grad()
-        critic_loss = F.mse_loss(critic_value, target)
+        # critic_loss = F.mse_loss(critic_value, target)
+        critic_loss = F.huber_loss(critic_value, target, delta=1)
         cl = critic_loss.cpu().detach().numpy()
         critic_loss.backward()
         self.critic.optimizer.step()
 
         # Calculation of the loss function for the actor network
-        # self.critic.eval()
         self.actor.optimizer.zero_grad()
         mu = self.actor.forward(states)
-        # self.actor.train()
         actor_loss = -self.critic.forward(states, mu)
         actor_loss = T.mean(actor_loss)
         al = actor_loss.cpu().detach().numpy()

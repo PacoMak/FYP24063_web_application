@@ -1,6 +1,6 @@
-from .train_ddpg import train, test, SAVED_MODELS_DIR, get_model_paths
-from .ddpg.v2.agent_v2 import Agent
-from .env.trading_simulator_v2 import TradingSimulator
+from .main import train, test, SAVED_MODELS_DIR, get_model_paths
+from .ddpg import Agent
+from .env import TradingSimulator, TradingSimulatorAmplifier, TradingSimulatorV2
 
 __all__ = [
     "train",
