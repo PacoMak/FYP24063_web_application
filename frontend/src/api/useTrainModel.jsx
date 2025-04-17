@@ -28,6 +28,7 @@ const trainModel = async ({
     tau,
     batch_size,
     model_name,
+    model_type: 1,
   });
   return response.data;
 };

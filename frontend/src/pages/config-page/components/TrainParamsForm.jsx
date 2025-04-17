@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Card, Box, Button, TextField } from "@mui/material";
+import { Card, Box, Button, TextField, MenuItem } from "@mui/material";
 import styled from "styled-components";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
@@ -211,25 +211,6 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
         </StyledRow>
         <StyledRow>
           <StyledField>
-            <TextField
-              size="small"
-              fullWidth
-              label="principle"
-              value={formik.values["principle"]}
-              name="principle"
-              type="number"
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={
-                formik.touched["principle"] &&
-                Boolean(formik.errors["principle"])
-              }
-              helperText={
-                formik.touched["principle"] && formik.errors["principle"]
-              }
-            />
-          </StyledField>
-          <StyledField>
             <DatePicker
               label="training start date"
               name="trainingStartDate"
@@ -256,8 +237,6 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
               }}
             />
           </StyledField>
-        </StyledRow>
-        <StyledRow>
           <StyledField>
             <DatePicker
               label="training end date"
@@ -283,7 +262,44 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
               }}
             />
           </StyledField>
-          <StyledField></StyledField>
+        </StyledRow>
+        <StyledRow>
+          <StyledField>
+            <TextField
+              size="small"
+              fullWidth
+              label="principal"
+              value={formik.values["principal"]}
+              name="principal"
+              type="number"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched["principal"] &&
+                Boolean(formik.errors["principal"])
+              }
+              helperText={
+                formik.touched["principal"] && formik.errors["principal"]
+              }
+            />
+          </StyledField>
+
+          <StyledField>
+            <TextField
+              fullWidth
+              select
+              label="model type"
+              size="small"
+              value={formik.values["modelType"]}
+              onChange={(e) => {
+                formik.setFieldValue("modelType", e.target.value, true);
+              }}
+            >
+              <MenuItem value={1}>Fully Connected Layers</MenuItem>
+              <MenuItem value={2}>Long Short-Term Memory</MenuItem>
+              <MenuItem value={3}>Amplifier</MenuItem>
+            </TextField>
+          </StyledField>
         </StyledRow>
       </StyledForm>
       <ButtonRow>

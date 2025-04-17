@@ -10,7 +10,7 @@ const testModel = async (model_id, start_date, end_date) => {
 export const useTestModel = (model_id) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (start_date, end_date) =>
+    mutationFn: ({ start_date, end_date }) =>
       testModel(model_id, start_date, end_date),
     onSuccess: () => {
       queryClient.invalidateQueries(["testing"]);

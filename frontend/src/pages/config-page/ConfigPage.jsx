@@ -60,16 +60,17 @@ export const ConfigPage = memo(() => {
   const initialTrainingParams = useMemo(
     () => ({
       modelName: "",
-      tau: 0.001,
-      alpha: 0.00025,
-      beta: 0.00025,
-      gamma: 0.9,
-      batchSize: 8,
+      tau: 0.03,
+      alpha: 0.0001,
+      beta: 0.0005,
+      gamma: 0.99,
+      batchSize: 128,
       epochs: 40,
-      rebalanceWindow: 10,
-      principle: 10000,
+      rebalanceWindow: 1,
+      principal: 1000000,
       trainingStartDate: dayjs().subtract(2, "year"),
       trainingEndDate: dayjs().subtract(1, "month"),
+      modelType: 1,
     }),
     []
   );

@@ -9,8 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
-export const ReturnOverEpochChart = memo(({ data }) => {
+export const SharpeRatioOverEpochChart = memo(({ data }) => {
   return (
     <ResponsiveContainer width="100%" height={"100%"}>
       <LineChart data={data}>
@@ -30,5 +29,4 @@ export const ReturnOverEpochChart = memo(({ data }) => {
     </ResponsiveContainer>
   );
 });
-
-ReturnOverEpochChart.displayName = "ReturnOverEpochChart";
+SharpeRatioOverEpochChart.displayName = "SharpeRatioOverEpochChart";

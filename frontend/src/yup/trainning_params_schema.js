@@ -40,5 +40,5 @@ export const trainning_params_schema = Yup.object().shape({
     .required("Required")
     .integer("Must be an integer")
     .min(1, "Must be greater than 0"),
-  principle: Yup.number().required("Required").positive("Must be positive"),
+  principal: Yup.number().required("Required").positive("Must be positive"),
 });

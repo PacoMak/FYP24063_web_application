@@ -13,6 +13,7 @@ import { useTrainModel } from "../../../api";
 import { useOverlay } from "../../../context";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../constants";
+
 const StyledPaper = styled(Card)`
   height: 100%;
   border: 1px solid ${({ theme }) => theme.palette.divider};
@@ -68,11 +69,13 @@ const ButtonWrapper = styled(Box)`
   align-items: center;
   padding: ${({ theme }) => theme.spacing(1)};
 `;
+
 const ButtonRow = styled(Box)`
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
 `;
+
 const BackButton = styled(Button)`
   color: ${({ theme }) => theme.colors.button.back.color};
   background-color: ${({ theme }) => theme.colors.button.back.background};
@@ -83,6 +86,7 @@ const BackButton = styled(Button)`
       theme.colors.button.back.hover.background};
   }
 `;
+
 const FinishButton = styled(Button)`
   background-color: ${({ $activate, theme }) =>
     $activate
@@ -95,6 +99,7 @@ const FinishButton = styled(Button)`
     ${({ theme }) => theme.colors.button.next.hover.background};
   }
 `;
+
 export const TrainingLog = memo(
   ({ selectedStocks, trainingParams, setStage }) => {
     const { showSpinner, hideSpinner, showErrorDialog } = useOverlay();
@@ -104,6 +109,7 @@ export const TrainingLog = memo(
     const [logs, setLogs] = useState([]);
     const { mutateAsync: trainModelAsync } = useTrainModel();
     const navigate = useNavigate();
+
     // Handle SSE for logs
     useEffect(() => {
       let eventSource;
@@ -139,11 +145,10 @@ export const TrainingLog = memo(
         const payload = {
           assets: selectedStocks.map((stock) => stock.symbol),
           rebalance_window: trainingParams.rebalanceWindow,
-
           principal: trainingParams.principal,
           num_epoch: trainingParams.epochs,
-          start_date: trainingParams.startDate,
-          end_date: trainingParams.endDate,
+          start_date: trainingParams.trainingStartDate.format("YYYY-MM-DD"),
+          end_date: trainingParams.trainingEndDate.format("YYYY-MM-DD"),
           alpha: trainingParams.alpha,
           beta: trainingParams.beta,
           gamma: trainingParams.gamma,
@@ -173,15 +178,64 @@ export const TrainingLog = memo(
               Training Details
             </Typography>
             <Box mb={2}>
-              <Typography variant="body2" color="textSecondary">
+              <Typography variant="subtitle2" color="textSecondary">
                 <strong>Selected Stocks:</strong>{" "}
                 {selectedStocks?.length
                   ? selectedStocks.map((stock) => stock.symbol).join(", ")
                   : "None"}
               </Typography>
+              <Typography variant="subtitle2" color="textSecondary" mt={1}>
+                <strong>Training Parameters:</strong>
+              </Typography>
+              {trainingParams ? (
+                <Box ml={2}>
+                  <Typography variant="caption" color="textSecondary">
+                    <strong>Rebalance Window:</strong>{" "}
+                    {trainingParams.rebalanceWindow},{" "}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    <strong>Principal:</strong> {trainingParams.principal},{" "}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    <strong>Epochs:</strong> {trainingParams.epochs},{" "}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    <strong>Start Date:</strong>{" "}
+                    {trainingParams.trainingStartDate.format("YYYY-MM-DD")},{" "}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    <strong>End Date:</strong>{" "}
+                    {trainingParams.trainingEndDate.format("YYYY-MM-DD")},{" "}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    <strong>Alpha:</strong> {trainingParams.alpha},{" "}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    <strong>Beta:</strong> {trainingParams.beta},{" "}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    <strong>Gamma:</strong> {trainingParams.gamma},{" "}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    <strong>Tau:</strong> {trainingParams.tau},{" "}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    <strong>Batch Size:</strong> {trainingParams.batchSize},{" "}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    <strong>Model Name:</strong> {trainingParams.modelName},{" "}
+                  </Typography>
+                </Box>
+              ) : (
+                <Typography variant="body2" color="textSecondary">
+                  None
+                </Typography>
+              )}
               <Typography variant="body2" color="textSecondary" mt={1}>
-                <strong>Training Parameters:</strong>{" "}
-                {trainingParams ? JSON.stringify(trainingParams) : "None"}
+                <strong>Model Type:</strong>{" "}
+                {trainingParams.modelType === 1 && "Fully Connected Layers"}
+                {trainingParams.modelType === 2 && "Long Short-Term Memory"}
+                {trainingParams.modelType === 3 && "Amplifier"}
               </Typography>
             </Box>
             <Typography variant="subtitle1" gutterBottom>
@@ -190,9 +244,8 @@ export const TrainingLog = memo(
             <LogContainer>
               {trainingStart ? (
                 <LogDisplay role="log" aria-label="Training logs">
-                  {logs.length > 0
-                    ? logs.map((log, index) => <div key={index}>{log}</div>)
-                    : "Logs will appear here..."}
+                  {logs.length > 0 &&
+                    logs.map((log, index) => <div key={index}>{log}</div>)}
                 </LogDisplay>
               ) : (
                 <ButtonWrapper>

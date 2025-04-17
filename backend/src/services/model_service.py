@@ -6,7 +6,8 @@ from ..rl_model import (
     get_model_paths,
     SAVED_MODELS_DIR,
     Agent,
-    TradingSimulator,
+    TradingSimulatorAmplifier,
+    TradingSimulatorV2,
     test,
 )
 from ..errors import FileNotFoundException, ModelNotFoundException
@@ -57,6 +58,7 @@ class ModelService:
         batch_size,
         model_id,
         model_name,
+        model_type,
     ):
         model_paths = get_model_paths(model_id)
         if not os.path.isdir(model_paths["model_dir"]):
@@ -67,29 +69,42 @@ class ModelService:
             os.makedirs(model_paths["evaluation_dir"])
         if not os.path.isdir(model_paths["graph_dir"]):
             os.makedirs(model_paths["graph_dir"])
+        if model_type == 1 or model_type == 2:
+            train_env = TradingSimulatorV2(
+                principal=principal,
+                assets=assets,
+                start_date=start_date,
+                end_date=end_date,
+                rebalance_window=rebalance_window,
+                tx_fee_per_share=tx_fee_per_share,
+            )
+            n_actions = len(assets) + 1
+        elif model_type == 3:
+            train_env = TradingSimulatorAmplifier(
+                principal=principal,
+                assets=assets,
+                start_date=start_date,
+                end_date=end_date,
+                rebalance_window=rebalance_window,
+                tx_fee_per_share=tx_fee_per_share,
+            )
+            n_actions = len(assets)
 
         agent = Agent(
             alpha=alpha,
             beta=beta,
             gamma=gamma,
             tau=tau,
-            input_dims=[len(assets) * 5 + 2],
+            input_dims=[len(assets) * 8 + 1],
             batch_size=batch_size,
-            n_actions=len(assets) + 1,
+            n_actions=n_actions,
+            model=model_type,
         )
         agent.save_models(
             actor_path=model_paths["actor"],
             target_actor_path=model_paths["target_actor"],
             critic_path=model_paths["critic"],
             target_critic_path=model_paths["target_critic"],
-        )
-        training_env = TradingSimulator(
-            principal=principal,
-            assets=assets,
-            start_date=start_date,
-            end_date=end_date,
-            rebalance_window=rebalance_window,
-            tx_fee_per_share=tx_fee_per_share,
         )
         parameters = {
             "assets": assets,
@@ -105,6 +120,7 @@ class ModelService:
             "tau": tau,
             "batch_size": batch_size,
             "model_name": model_name,
+            "model_type": model_type,
         }
         with open(model_paths["params"], "w") as f:
             json.dump(parameters, f, indent=4)
@@ -112,7 +128,7 @@ class ModelService:
             target=train,
             kwargs={
                 "agent": agent,
-                "env": training_env,
+                "env": train_env,
                 "num_epoch": num_epoch,
                 "model_id": model_id,
                 "log_fn": lambda msg: self.log_message(model_id, msg),
@@ -133,15 +149,38 @@ class ModelService:
         gamma = params["gamma"]
         tau = params["tau"]
         batch_size = params["batch_size"]
+        model_type = params["model_type"]
+
+        if model_type == 1 or model_type == 2:
+            test_env = TradingSimulatorV2(
+                principal=principal,
+                assets=assets,
+                start_date=start_date,
+                end_date=end_date,
+                rebalance_window=rebalance_window,
+                tx_fee_per_share=tx_fee_per_share,
+            )
+            n_actions = len(assets) + 1
+        elif model_type == 3:
+            test_env = TradingSimulatorAmplifier(
+                principal=principal,
+                assets=assets,
+                start_date=start_date,
+                end_date=end_date,
+                rebalance_window=rebalance_window,
+                tx_fee_per_share=tx_fee_per_share,
+            )
+            n_actions = len(assets)
 
         agent = Agent(
             alpha=alpha,
             beta=beta,
             gamma=gamma,
             tau=tau,
-            input_dims=[len(assets) * 5 + 2],
+            input_dims=[len(assets) * 8 + 1],
             batch_size=batch_size,
-            n_actions=len(assets) + 1,
+            n_actions=n_actions,
+            model=model_type,
         )
         agent.load_models(
             actor_path=model_paths["actor"],
@@ -149,16 +188,11 @@ class ModelService:
             critic_path=model_paths["critic"],
             target_critic_path=model_paths["target_critic"],
         )
-        testing_env = TradingSimulator(
-            principal=principal,
-            assets=assets,
-            start_date=start_date,
-            end_date=end_date,
-            rebalance_window=rebalance_window,
-            tx_fee_per_share=tx_fee_per_share,
+
+        result, time_range = test(
+            agent=agent, env=test_env, model_id=model_id, assets=assets
         )
-        result = test(agent=agent, env=testing_env, model_id=model_id, assets=assets)
-        return result
+        return result, time_range
 
     def is_model_trained(self, model_id):
         model_paths = get_model_paths(model_id)

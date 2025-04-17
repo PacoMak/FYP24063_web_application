@@ -1,4 +1,4 @@
-export * from "./PortfolioValueChart";
+export * from "./SharpeRatioChart";
 export * from "./StockPriceTable";
 export * from "./ReturnOverTimeChart";
 export * from "./ReturnOverEpochChart";

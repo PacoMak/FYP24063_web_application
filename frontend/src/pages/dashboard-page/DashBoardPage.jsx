@@ -1,4 +1,4 @@
-import { Box, Button, Card, TextField, Typography } from "@mui/material";
+import { Box, Button, Card, Tabs, Tab, Typography } from "@mui/material";
 import { memo, useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 import {
@@ -6,6 +6,7 @@ import {
   ReturnOverEpochChart,
   ReturnOverTimeChart,
   StockPriceTable,
+  SharpeRatioOverEpochChart,
 } from "./components";
 import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
@@ -43,14 +44,14 @@ const Body = styled(Box)`
 `;
 
 const LeftColumn = styled(Box)`
-  flex: 2;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 `;
 
 const RightColumn = styled(Box)`
-  flex: 1;
+  flex: 2;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -68,11 +69,44 @@ const CardWrapper = styled(Card)`
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  padding: 0.5rem;
+  padding: 2rem;
 `;
+
 const StyledDatePicker = styled(DatePicker)`
   background-color: white;
 `;
+
+const StyledTabs = styled(Tabs)`
+  background-color: ${({ theme }) => theme.palette.background.paper};
+  border-bottom: 1px solid ${({ theme }) => theme.palette.divider};
+  & .MuiTabs-indicator {
+    background-color: ${({ theme }) => theme.palette.primary.main};
+    height: 3px;
+    border-radius: 2px;
+  }
+  padding: 0 1rem;
+`;
+
+const StyledTab = styled(Tab)`
+  text-transform: none;
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 12px 24px;
+  color: ${({ theme }) => theme.palette.text.secondary};
+  &.Mui-selected {
+    color: ${({ theme }) => theme.palette.primary.main};
+    font-weight: 600;
+  }
+  &:hover {
+    background-color: ${({ theme }) => theme.palette.action.hover};
+    color: ${({ theme }) => theme.palette.primary.main};
+  }
+  ${({ theme }) => theme.breakpoints.down("sm")} {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+  }
+`;
+
 export const DashboardPage = memo(() => {
   const { showErrorDialog, showSpinner, hideSpinner } = useOverlay();
   const navigate = useNavigate();
@@ -83,8 +117,8 @@ export const DashboardPage = memo(() => {
   const [testingEndDate, setTestingEndDate] = useState(null);
   const { data: trainingResult, isFetching: isTrainingResultFetching } =
     useTrainingResult(model_id);
-
   const { data: model, isFetching: isModelFetching } = useModel(model_id);
+  const [activeTab, setActiveTab] = useState(0);
 
   const modelStocks = useMemo(() => {
     if (isModelFetching) {
@@ -123,23 +157,25 @@ export const DashboardPage = memo(() => {
     if (!testingResult) {
       return [];
     }
-    const models = Object.keys(testingResult);
-    const len = testingResult[models[0]].length;
+
+    const models = Object.keys(testingResult.result);
+    console.log(models);
+
+    const len = testingResult.result[models[0]].length;
     return Array.from({ length: len }, (_, index) => {
       return models.reduce(
         (acc, model) => {
           return {
             ...acc,
-            [model]: testingResult[model][index]?.toFixed(2),
+            [model]: testingResult.result[model][index]?.toFixed(2),
           };
         },
         {
-          date: index,
+          date: testingResult.time_range[index],
         }
       );
     }).slice(-100);
   }, [testingResult]);
-
   const formattedReturnOverEpoch = useMemo(() => {
     if (isTrainingResultFetching) {
       return [];
@@ -174,10 +210,10 @@ export const DashboardPage = memo(() => {
         showErrorDialog("Invalid Input", "Start date must be before end date");
         return;
       }
-      const res = await testModelMutate(
-        testingStartDate.format("YYYY-MM-DD"),
-        testingEndDate.format("YYYY-MM-DD")
-      );
+      const res = await testModelMutate({
+        start_date: testingStartDate.format("YYYY-MM-DD"),
+        end_date: testingEndDate.format("YYYY-MM-DD"),
+      });
       setTestingResult(res);
     } catch (e) {
       showErrorDialog("Error", e.message);
@@ -185,6 +221,29 @@ export const DashboardPage = memo(() => {
       hideSpinner();
     }
   }, [testModelMutate, testingStartDate, testingEndDate]);
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  const renderChart = () => {
+    switch (activeTab) {
+      case 0:
+        return formattedReturnOverTime.length > 0 ? (
+          <ReturnOverTimeChart data={formattedReturnOverTime} />
+        ) : (
+          <ChartNotAvailable />
+        );
+      case 1:
+        return (
+          <SharpeRatioOverEpochChart data={formattedSharpeRatioOverEpoch} />
+        );
+      case 2:
+        return <ReturnOverEpochChart data={formattedReturnOverEpoch} />;
+      default:
+        return <ChartNotAvailable />;
+    }
+  };
 
   return (
     <Wrapper>
@@ -229,27 +288,13 @@ export const DashboardPage = memo(() => {
           </Cell>
         </LeftColumn>
         <RightColumn>
+          <StyledTabs value={activeTab} onChange={handleTabChange} centered>
+            <StyledTab label="Return Over Time" />
+            <StyledTab label="Sharpe Ratio Over Epoch" />
+            <StyledTab label="Return Over Epoch" />
+          </StyledTabs>
           <Cell>
-            <Typography gutterBottom>Return Over Time</Typography>
-            <CardWrapper>
-              {formattedReturnOverTime.length > 0 ? (
-                <ReturnOverTimeChart data={formattedReturnOverTime} />
-              ) : (
-                <ChartNotAvailable />
-              )}
-            </CardWrapper>
-          </Cell>
-          <Cell>
-            <Typography gutterBottom>Sharpe Ratio Over Epoch</Typography>
-            <CardWrapper>
-              <ReturnOverTimeChart data={formattedSharpeRatioOverEpoch} />
-            </CardWrapper>
-          </Cell>
-          <Cell>
-            <Typography gutterBottom>Return Over Epoch</Typography>
-            <CardWrapper>
-              <ReturnOverEpochChart data={formattedReturnOverEpoch} />
-            </CardWrapper>
+            <CardWrapper>{renderChart()}</CardWrapper>
           </Cell>
         </RightColumn>
       </Body>

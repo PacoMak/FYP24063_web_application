@@ -12,22 +12,21 @@ def train_model():
     try:
         model_id = str(uuid.uuid4())
         body = request.get_json(force=True)
-        assets = body.get(
-            "assets",
-            ["APA", "TSLA"],
-        )
-        rebalance_window = body.get("rebalance_window", 1)
+        assets = body.get("assets")
+
+        rebalance_window = body.get("rebalance_window")
         tx_fee_per_share = body.get("tx_fee_per_share", 0.005)
-        principal = body.get("principal", 1000000)
-        num_epoch = body.get("num_epoch", 5)
-        start_date = body.get("start_date", "2020-07-01")
-        end_date = body.get("end_date", "2024-07-31")
-        alpha = body.get("alpha", 0.0005)
-        beta = body.get("beta", 0.0025)
-        gamma = body.get("gamma", 0.99)
-        tau = body.get("tau", 0.09)
-        batch_size = body.get("batch_size", 128)
-        model_name = body.get("model_name", "default")
+        principal = body.get("principal")
+        num_epoch = body.get("num_epoch")
+        start_date = body.get("start_date")
+        end_date = body.get("end_date")
+        alpha = body.get("alpha")
+        beta = body.get("beta")
+        gamma = body.get("gamma")
+        tau = body.get("tau")
+        batch_size = body.get("batch_size")
+        model_name = body.get("model_name")
+        model_type = body.get("model_type")
         model_service.train_model(
             assets=assets,
             rebalance_window=rebalance_window,
@@ -43,6 +42,7 @@ def train_model():
             batch_size=batch_size,
             model_id=model_id,
             model_name=model_name,
+            model_type=model_type,
         )
         return Response(response=model_id, status=200)
     except Exception as e:
@@ -104,8 +104,11 @@ def test_model(model_id):
         body = request.get_json(force=True)
         start_date = body.get("start_date", "2020-07-01")
         end_date = body.get("end_date", "2024-07-31")
-        result = model_service.test_model(start_date, end_date, model_id)
-        return Response(response=json.dumps(result), status=200)
+        result, time_range = model_service.test_model(start_date, end_date, model_id)
+        return Response(
+            response=json.dumps({"result": result, "time_range": time_range}),
+            status=200,
+        )
     except Exception as e:
         return Response(response=f"Internal error: {e}", status=501)
 
