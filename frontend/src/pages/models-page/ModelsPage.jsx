@@ -143,7 +143,13 @@ export const ModelsPage = memo(() => {
     }
 
     setSelectedModels([]);
-  }, [deleteModelAsync, selectedModels]);
+  }, [
+    deleteModelAsync,
+    selectedModels,
+    hideSpinner,
+    showErrorDialog,
+    showSpinner,
+  ]);
 
   const cols = useMemo(
     () => [

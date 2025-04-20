@@ -249,7 +249,7 @@ export const SelectStockTable = memo(
           ),
         },
       ],
-      [selectedStocks]
+      [selectedStocks, setSelectedStocks]
     );
 
     const displaySelectedStocks = useMemo(() => {
@@ -302,7 +302,7 @@ export const SelectStockTable = memo(
           ),
         },
       ],
-      [selectedStocks]
+      [selectedStocks, setSelectedStocks]
     );
 
     return (

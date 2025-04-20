@@ -220,7 +220,14 @@ export const DashboardPage = memo(() => {
     } finally {
       hideSpinner();
     }
-  }, [testModelMutate, testingStartDate, testingEndDate]);
+  }, [
+    testModelMutate,
+    testingStartDate,
+    testingEndDate,
+    showErrorDialog,
+    hideSpinner,
+    showSpinner,
+  ]);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);

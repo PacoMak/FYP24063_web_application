@@ -6,7 +6,6 @@ import {
   Typography,
   Divider,
   Button,
-  alpha,
 } from "@mui/material";
 import { memo, useEffect, useState } from "react";
 import { useTrainModel } from "../../../api";
@@ -137,7 +136,7 @@ export const TrainingLog = memo(
           eventSource.close();
         }
       };
-    }, [modelId]);
+    }, [modelId, showErrorDialog]);
 
     const handleStartTraining = async () => {
       try {
