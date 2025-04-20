@@ -46,7 +46,8 @@ def train_model():
         )
         return Response(response=model_id, status=200)
     except Exception as e:
-        return Response(response=f"Internal error: {e}", status=501)
+        print(e)
+        return Response(response=f"Internal error: {str(e)}", status=501)
 
 
 @model.route("/model/<model_id>", methods=["DELETE"])
@@ -104,9 +105,17 @@ def test_model(model_id):
         body = request.get_json(force=True)
         start_date = body.get("start_date", "2020-07-01")
         end_date = body.get("end_date", "2024-07-31")
-        result, time_range = model_service.test_model(start_date, end_date, model_id)
+        result, time_range, weight_history = model_service.test_model(
+            start_date, end_date, model_id
+        )
         return Response(
-            response=json.dumps({"result": result, "time_range": time_range}),
+            response=json.dumps(
+                {
+                    "result": result,
+                    "time_range": time_range,
+                    "weight_history": weight_history,
+                }
+            ),
             status=200,
         )
     except Exception as e:

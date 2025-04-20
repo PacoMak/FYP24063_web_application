@@ -108,6 +108,7 @@ def test(agent, env, assets, model_id):
     model_paths = get_model_paths(model_id)
     is_training_mode = False
     return_history = {}
+    weight_history = []
     modes = [
         "ddpg",
         # "GOD",
@@ -136,6 +137,7 @@ def test(agent, env, assets, model_id):
             total_return += reward
             observation = new_state
             return_history["ddpg"].append(total_return)
+            weight_history.append(env.get_portfolio_weights())
         print_eval_results(env, total_return)
     if "GOD" in modes:
         return_history["GOD"] = []
@@ -290,7 +292,7 @@ def test(agent, env, assets, model_id):
         print_eval_results(env, total_return)
     time_range = env.trading_date_range()
 
-    return return_history, time_range
+    return return_history, time_range, weight_history
 
 
 if __name__ == "__main__":
