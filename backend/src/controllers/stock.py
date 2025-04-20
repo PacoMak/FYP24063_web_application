@@ -5,12 +5,23 @@ stock = Blueprint("stock", __name__)
 stock_service = StockService()
 
 
-@stock.route("/tickers", methods=["GET"])
-def get_exchange_tickers():
+@stock.route("/symbols", methods=["GET"])
+def get_symbols():
     try:
-        tickers = stock_service.get_exchange_tickers()
+        symbols = stock_service.get_symbols()
         return Response(
-            response=json.dumps(tickers), status=200, mimetype="application/json"
+            response=json.dumps(symbols), status=200, mimetype="application/json"
+        )
+    except Exception as e:
+        return Response(respone=f"Internal error: {e}", status=501)
+
+
+@stock.route("/symbols/sectors", methods=["GET"])
+def get_sectors():
+    try:
+        sectors = stock_service.get_unique_sectors()
+        return Response(
+            response=json.dumps(sectors), status=200, mimetype="application/json"
         )
     except:
         return Response(respone="internal error", status=501)

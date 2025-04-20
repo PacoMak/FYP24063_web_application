@@ -3,6 +3,7 @@ from ..utils import project_root
 import csv
 import json
 from io import StringIO
+import pandas as pd
 
 
 class StockService:
@@ -20,25 +21,6 @@ class StockService:
             604800: "1wk",
         }
         self.period = period
-        self.areas = [
-            "AMEX",
-            "ASX",
-            "CFE",
-            "EUREX",
-            "FOREX",
-            "INDEX",
-            "LSE",
-            "MGEX",
-            "NASDAQ",
-            "NYBOT",
-            "NYSE",
-            "OTCBB",
-            "SGX",
-            "TSX",
-            "TSXV",
-            "USMF",
-            "WCE",
-        ]
 
     def get_stocks_data(self, tickers_list, interval=86400):
         tickers = yf.Tickers(" ".join(tickers_list))
@@ -69,20 +51,28 @@ class StockService:
         ticker = yf.Ticker(ticker)
         return ticker.info
 
-    def get_exchange_tickers(self):
-        stocks = {}
-        for area in self.areas:
-            ticker_file = project_root / "src" / "tickers" / f"{area}.txt"
-            with open(ticker_file) as file:
-                content = file.read()
-                csv_file = StringIO(content)
-                reader = csv.reader(csv_file, delimiter="\t")
-                next(reader)
-                area_stocks = []
-                for row in reader:
-                    area_stocks.append({"symbol": row[0], "name": row[1]})
-                stocks[area] = area_stocks
-        return stocks
+    def get_symbols(self):
+        file_path = project_root / "src" / "tickers" / "tickers.csv"
+        df = pd.read_csv(file_path, keep_default_na=False, na_values=[""])
+        df["Sector"] = df["Sector"].fillna("Other")
+        grouped = df.groupby("Sector")
+        result = {}
+        for sector, group in grouped:
+            result[sector] = [
+                {"name": row["Name"], "symbol": row["Symbol"]}
+                for index, row in group.iterrows()
+            ]
+        return result
+
+    def get_unique_sectors(self):
+        file_path = project_root / "src" / "tickers" / "tickers.csv"
+        df = pd.read_csv(file_path, keep_default_na=False, na_values=[""])
+        df["Sector"] = df["Sector"].fillna("Other")
+        sectors = sorted(df["Sector"].unique().tolist())
+        if "Other" in sectors:
+            sectors.remove("Other")
+            sectors.append("Other")
+        return sectors
 
 
 if __name__ == "__main__":

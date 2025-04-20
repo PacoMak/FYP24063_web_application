@@ -11,8 +11,7 @@ import {
   TextField,
 } from "@mui/material";
 import { SearchIcon } from "../../../icons";
-import { useTickerList } from "../../../api";
-import { exchangeMapper } from "../../../mapper";
+import { useSymbolList, useSectorList } from "../../../api";
 
 const Wrapper = styled(Paper)`
   width: 80%;
@@ -117,8 +116,6 @@ const Right = styled(Box)`
   height: 100%;
 `;
 
-const rowsPerPageOptions = [20];
-
 const Header = styled(Box)`
   display: flex;
   flex-direction: row;
@@ -162,25 +159,34 @@ const ButtonRow = styled(Box)`
   gap: 1rem;
   justify-content: flex-end;
 `;
+
 export const SelectStockTable = memo(
   ({ selectedStocks, setSelectedStocks, setStage }) => {
-    const { data: tickerList, isFetching } = useTickerList();
-    const [search, setSearch] = useState("");
+    const { data: symbolList, isFetched: symbolListIsFetched } =
+      useSymbolList();
+    const { data: sectorList, isFetched: sectorListIsFetched } =
+      useSectorList();
+
     const [unselectedStocksTablePage, setUnselectedStocksTablePage] =
       useState(0);
     const [selectedStocksTablePage, setSelectedStocksTablePage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-    const areaOptions = useMemo(
-      () => ["All", ...Object.keys(exchangeMapper)],
-      []
+
+    const [search, setSearch] = useState("");
+
+    const rowsPerPage = useMemo(() => 10, []);
+    const sectorOptions = useMemo(
+      () => ["All", ...(sectorList ?? [])],
+      [sectorList]
     );
-    const [area, setArea] = useState(areaOptions[0]);
-    const filteredTickerList = useMemo(() => {
-      if (isFetching) {
+    const [sector, setSector] = useState("All");
+
+    const filteredSymbolList = useMemo(() => {
+      if (!sectorListIsFetched || !symbolListIsFetched) {
         return [];
       }
-      if (area == "All") {
-        return Object.values(tickerList)
+
+      if (sector == "All") {
+        return Object.values(symbolList)
           .flat()
           .filter(
             ({ name, symbol }) =>
@@ -188,19 +194,19 @@ export const SelectStockTable = memo(
               symbol.toLowerCase().includes(search.toLowerCase())
           );
       }
-      return tickerList[exchangeMapper[area]].filter(
+      return symbolList[sector].filter(
         ({ name, symbol }) =>
           name.toLowerCase().includes(search.toLowerCase()) ||
           symbol.toLowerCase().includes(search.toLowerCase())
       );
-    }, [tickerList, area, isFetching, search]);
+    }, [symbolList, sector, sectorListIsFetched, symbolListIsFetched, search]);
 
     const displayUnselectedStocks = useMemo(() => {
       const start = unselectedStocksTablePage * rowsPerPage;
       const end = start + rowsPerPage;
-      if (end > filteredTickerList.length) {
+      if (end > filteredSymbolList.length) {
         const emptyStock = Array.from(
-          { length: end - filteredTickerList.length },
+          { length: end - filteredSymbolList.length },
           (_, index) => ({
             symbol: ` `.repeat(index),
             name: "",
@@ -208,12 +214,12 @@ export const SelectStockTable = memo(
           })
         );
         return [
-          ...filteredTickerList.slice(start, filteredTickerList.length),
+          ...filteredSymbolList.slice(start, filteredSymbolList.length),
           ...emptyStock,
         ];
       }
-      return filteredTickerList.slice(start, end);
-    }, [unselectedStocksTablePage, rowsPerPage, filteredTickerList]);
+      return filteredSymbolList.slice(start, end);
+    }, [unselectedStocksTablePage, rowsPerPage, filteredSymbolList]);
 
     const UnselectedTableCols = useMemo(
       () => [
@@ -310,12 +316,12 @@ export const SelectStockTable = memo(
         <Header>
           <StyledSelect
             size="small"
-            value={area}
-            onChange={(event) => setArea(event.target.value)}
+            value={sector}
+            onChange={(event) => setSector(event.target.value)}
           >
-            {areaOptions.map((area) => (
-              <MenuItem key={area} value={area}>
-                {area}
+            {sectorOptions.map((sector) => (
+              <MenuItem key={sector} value={sector}>
+                {sector}
               </MenuItem>
             ))}
           </StyledSelect>
@@ -345,15 +351,12 @@ export const SelectStockTable = memo(
                 data={displayUnselectedStocks}
                 rowKey={"symbol"}
                 page={unselectedStocksTablePage}
-                rowsPerPageOptions={rowsPerPageOptions}
-                onRowsPerPageChange={(event) => {
-                  setRowsPerPage(event.target.value);
-                }}
-                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[10]}
+                rowsPerPage={10}
                 onPageChange={(_, newPage) => {
                   setUnselectedStocksTablePage(newPage);
                 }}
-                count={filteredTickerList.length}
+                count={filteredSymbolList.length}
               />
             </TableContainer>
           </Left>
@@ -366,11 +369,8 @@ export const SelectStockTable = memo(
                 data={displaySelectedStocks}
                 rowKey={"symbol"}
                 page={selectedStocksTablePage}
-                rowsPerPageOptions={rowsPerPageOptions}
-                onRowsPerPageChange={(event) => {
-                  setRowsPerPage(event.target.value);
-                }}
-                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[10]}
+                rowsPerPage={10}
                 onPageChange={(event, newPage) => {
                   setSelectedStocksTablePage(newPage);
                 }}
