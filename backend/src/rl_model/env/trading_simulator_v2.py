@@ -21,6 +21,7 @@ class TradingSimulatorV2:
         rebalance_window,
         tx_fee_per_share,
     ):
+
         compute_date = datetime.strptime(start_date, "%Y-%m-%d") - timedelta(days=60)
         compute_date = compute_date.strftime("%Y-%m-%d")
 
@@ -31,6 +32,7 @@ class TradingSimulatorV2:
             group_by="ticker",
             auto_adjust=True,
         )
+
         if len(assets) == 1:
             # Create a MultiIndex for the columns
             multi_index_columns = pd.MultiIndex.from_tuples(
@@ -56,6 +58,7 @@ class TradingSimulatorV2:
         returns = returns.set_index("Date")
 
         dates = returns.index
+
         adj_close = self.data.xs("Close", level=1, axis=1)
         adj_close = adj_close.reindex(columns=returns.columns)
         volume = self.data.xs("Volume", level=1, axis=1)
@@ -166,7 +169,6 @@ class TradingSimulatorV2:
         self.trading_dates = close_data["Date"].dt.date.astype(str).tolist()[1:]
         # self.rebalance_dates = [self.trading_dates[i] for i in range(len(self.trading_dates)) if (i+1) % rebalance_window == 0]
         mpt_window = 30
-
         rolling_cov = numpy_rolling_cov(returns.to_numpy(), mpt_window)[
             -len(self.trading_dates) - 1 :
         ]
@@ -187,7 +189,6 @@ class TradingSimulatorV2:
             self.tangent_portfolios.append(
                 self.calculate_tangent_portfolio(exp_r, cov, rate)
             )
-
         # Collect all the Adjusted Close price data
         adj_close_data = close_data.loc[
             :, close_data.columns.get_level_values(1) == "Close"
@@ -318,7 +319,6 @@ class TradingSimulatorV2:
 
         df["excess_return_rate"] = df["return_rate"] - df["risk_free_rate"] / 100
 
-        # print(df)
         return df["excess_return_rate"].mean() / df["excess_return_rate"].std()
 
     def omega_ratio(self, target_rate):
@@ -383,6 +383,12 @@ class TradingSimulatorV2:
 
     def trading_date_range(self):
         return self.trading_dates[1:]
+
+    def get_portfolio_weights(self):
+        weights = {}
+        for asset in self.portfolio:
+            weights[asset.get_name()] = float(asset.get_weighting())
+        return weights
 
     def get_tangent_weights(self, lag):
         t = max(self.time - lag, 0)

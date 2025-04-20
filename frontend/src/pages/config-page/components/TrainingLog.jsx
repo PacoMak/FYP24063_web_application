@@ -108,6 +108,7 @@ export const TrainingLog = memo(
     const [logs, setLogs] = useState([]);
     const { mutateAsync: trainModelAsync } = useTrainModel();
     const navigate = useNavigate();
+    console.log(modelId);
 
     // Handle SSE for logs
     useEffect(() => {

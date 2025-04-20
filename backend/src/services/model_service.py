@@ -69,6 +69,7 @@ class ModelService:
             os.makedirs(model_paths["evaluation_dir"])
         if not os.path.isdir(model_paths["graph_dir"]):
             os.makedirs(model_paths["graph_dir"])
+
         if model_type == 1 or model_type == 2:
             train_env = TradingSimulatorV2(
                 principal=principal,
@@ -189,10 +190,10 @@ class ModelService:
             target_critic_path=model_paths["target_critic"],
         )
 
-        result, time_range = test(
+        result, time_range, weight_history = test(
             agent=agent, env=test_env, model_id=model_id, assets=assets
         )
-        return result, time_range
+        return result, time_range, weight_history
 
     def is_model_trained(self, model_id):
         model_paths = get_model_paths(model_id)

@@ -69,7 +69,7 @@ export const ConfigPage = memo(() => {
       rebalanceWindow: 1,
       principal: 1000000,
       trainingStartDate: dayjs().subtract(2, "year"),
-      trainingEndDate: dayjs().subtract(1, "month"),
+      trainingEndDate: dayjs().endOf("year").subtract(1, "year"),
       modelType: 1,
     }),
     []

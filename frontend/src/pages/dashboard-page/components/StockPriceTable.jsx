@@ -26,6 +26,7 @@ const TableContainer = styled.div`
 `;
 
 const StyledTable = styled(Table)`
+  height: 100%;
   .MuiTableCell-head {
     background-color: ${({ theme }) => theme.colors.table.header.background};
     color: ${({ theme }) => theme.colors.table.header.color};

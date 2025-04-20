@@ -16,7 +16,7 @@ export const ChartNotAvailable = memo(() => {
   return (
     <Wrapper>
       <Typography variant="h6" color="textSecondary">
-        Not available
+        Test the model to generate and display the chart
       </Typography>
     </Wrapper>
   );

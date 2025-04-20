@@ -381,6 +381,12 @@ class TradingSimulatorAmplifier:
     def trading_date_range(self):
         return self.trading_dates[1:]
 
+    def get_portfolio_weights(self):
+        weights = {}
+        for asset in self.portfolio:
+            weights[asset.get_name()] = float(asset.get_weighting())
+        return weights
+
     def get_tangent_weights(self, lag):
         t = max(self.time - lag, 0)
         r = self.close_price[t : self.time].pct_change().dropna()

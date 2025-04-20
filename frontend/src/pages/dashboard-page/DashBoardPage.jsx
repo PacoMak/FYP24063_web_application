@@ -7,6 +7,7 @@ import {
   ReturnOverTimeChart,
   StockPriceTable,
   SharpeRatioOverEpochChart,
+  PortfolioWeightsChart,
 } from "./components";
 import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
@@ -157,10 +158,7 @@ export const DashboardPage = memo(() => {
     if (!testingResult) {
       return [];
     }
-
     const models = Object.keys(testingResult.result);
-    console.log(models);
-
     const len = testingResult.result[models[0]].length;
     return Array.from({ length: len }, (_, index) => {
       return models.reduce(
@@ -176,6 +174,7 @@ export const DashboardPage = memo(() => {
       );
     }).slice(-100);
   }, [testingResult]);
+
   const formattedReturnOverEpoch = useMemo(() => {
     if (isTrainingResultFetching) {
       return [];
@@ -247,6 +246,15 @@ export const DashboardPage = memo(() => {
         );
       case 2:
         return <ReturnOverEpochChart data={formattedReturnOverEpoch} />;
+      case 3:
+        return testingResult && testingResult.weight_history?.length > 0 ? (
+          <PortfolioWeightsChart
+            weightHistory={testingResult.weight_history}
+            timeRange={testingResult.time_range}
+          />
+        ) : (
+          <ChartNotAvailable />
+        );
       default:
         return <ChartNotAvailable />;
     }
@@ -299,6 +307,7 @@ export const DashboardPage = memo(() => {
             <StyledTab label="Return Over Time" />
             <StyledTab label="Sharpe Ratio Over Epoch" />
             <StyledTab label="Return Over Epoch" />
+            <StyledTab label="Portfolio Weights" />
           </StyledTabs>
           <Cell>
             <CardWrapper>{renderChart()}</CardWrapper>
