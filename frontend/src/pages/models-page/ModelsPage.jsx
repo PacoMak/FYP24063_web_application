@@ -195,6 +195,11 @@ export const ModelsPage = memo(() => {
         render: (model) => model.beta,
       },
       {
+        key: "alpha",
+        header: "alpha",
+        render: (model) => model.alpha,
+      },
+      {
         key: "tau",
         header: "tau",
         render: (model) => model.tau,

@@ -7,7 +7,7 @@ import {
   Divider,
   Button,
 } from "@mui/material";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useTrainModel } from "../../../api";
 import { useOverlay } from "../../../context";
 import { useNavigate } from "react-router-dom";
@@ -108,7 +108,14 @@ export const TrainingLog = memo(
     const [logs, setLogs] = useState([]);
     const { mutateAsync: trainModelAsync } = useTrainModel();
     const navigate = useNavigate();
-    console.log(modelId);
+    const logRef = useRef(null);
+
+    // Auto-scroll to bottom when logs update
+    useEffect(() => {
+      if (logRef.current) {
+        logRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    }, [logs]);
 
     // Handle SSE for logs
     useEffect(() => {
@@ -246,6 +253,7 @@ export const TrainingLog = memo(
                 <LogDisplay role="log" aria-label="Training logs">
                   {logs.length > 0 &&
                     logs.map((log, index) => <div key={index}>{log}</div>)}
+                  <div ref={logRef}></div>
                 </LogDisplay>
               ) : (
                 <ButtonWrapper>
