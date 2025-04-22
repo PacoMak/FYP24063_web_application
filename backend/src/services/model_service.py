@@ -242,4 +242,9 @@ class ModelService:
 
     def get_models(self):
         model_ids = os.listdir(SAVED_MODELS_DIR)
+        for model_id in model_ids:
+            model_paths = get_model_paths(model_id)
+            if not os.path.isfile(model_paths["params"]):
+                self.delete_model(model_id)
+        model_ids = os.listdir(SAVED_MODELS_DIR)
         return model_ids
