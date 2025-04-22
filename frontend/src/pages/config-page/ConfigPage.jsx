@@ -84,7 +84,6 @@ export const ConfigPage = memo(() => {
       values.trainingEndDate = values.trainingEndDate.format("YYYY-MM-DD");
     },
   });
-  console.log(formik.errors);
 
   const steps = [
     "Select Stocks",
