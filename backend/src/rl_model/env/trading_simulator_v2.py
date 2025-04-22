@@ -305,6 +305,7 @@ class TradingSimulatorV2:
         portfolio_history = pd.DataFrame(
             {"date": pd.to_datetime(self.trading_dates), "value": self.value_history}
         )
+
         annual_return_rates = (
             portfolio_history.groupby(portfolio_history["date"].dt.year)["value"]
             .apply(annual_return)
@@ -316,9 +317,8 @@ class TradingSimulatorV2:
         df = annual_return_rates.set_index("year").join(
             risk_free_rates.set_index("year")
         )
-
         df["excess_return_rate"] = df["return_rate"] - df["risk_free_rate"] / 100
-
+        test = df["excess_return_rate"].mean() / df["excess_return_rate"].std()
         return df["excess_return_rate"].mean() / df["excess_return_rate"].std()
 
     def omega_ratio(self, target_rate):

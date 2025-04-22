@@ -68,12 +68,13 @@ export const ConfigPage = memo(() => {
       epochs: 40,
       rebalanceWindow: 1,
       principal: 1000000,
-      trainingStartDate: dayjs().subtract(2, "year"),
+      trainingStartDate: dayjs().startOf("year").subtract(2, "year"),
       trainingEndDate: dayjs().endOf("year").subtract(1, "year"),
       modelType: 1,
     }),
     []
   );
+
   const formik = useFormik({
     initialValues: initialTrainingParams,
     validationSchema: trainning_params_schema,
@@ -83,6 +84,8 @@ export const ConfigPage = memo(() => {
       values.trainingEndDate = values.trainingEndDate.format("YYYY-MM-DD");
     },
   });
+  console.log(formik.errors);
+
   const steps = [
     "Select Stocks",
     "Set Training Params",

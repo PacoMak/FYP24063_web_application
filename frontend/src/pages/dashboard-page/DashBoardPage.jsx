@@ -275,7 +275,8 @@ export const DashboardPage = memo(() => {
         <StyledDatePicker
           name="testing start date"
           label="testing start date"
-          maxDate={dayjs().subtract(1, "day")}
+          minDate={dayjs("1977-01-01")}
+          maxDate={dayjs().endOf("year").subtract(1, "year")}
           value={testingStartDate}
           onChange={(e) => {
             setTestingStartDate(e);
@@ -285,7 +286,8 @@ export const DashboardPage = memo(() => {
         <StyledDatePicker
           name="testing end date"
           label="testing end date"
-          maxDate={dayjs().subtract(1, "day")}
+          minDate={dayjs("1977-01-01")}
+          maxDate={dayjs().endOf("year").subtract(1, "year")}
           value={testingEndDate}
           onChange={(e) => {
             setTestingEndDate(e);

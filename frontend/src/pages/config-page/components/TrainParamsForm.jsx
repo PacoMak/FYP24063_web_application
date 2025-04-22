@@ -215,6 +215,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
               label="training start date"
               name="trainingStartDate"
               value={formik.values["trainingStartDate"]}
+              minDate={dayjs("1977-01-01")}
               maxDate={dayjs().endOf("year").subtract(1, "year")}
               onChange={(value) => {
                 formik.setFieldValue("trainingStartDate", value, true);
@@ -242,6 +243,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
               label="training end date"
               name="trainingEndDate"
               value={formik.values["trainingEndDate"]}
+              minDate={dayjs("1977-01-01")}
               maxDate={dayjs().endOf("year").subtract(1, "year")}
               onChange={(value) => {
                 formik.setFieldValue("trainingEndDate", value, true);
