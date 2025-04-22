@@ -75,6 +75,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
         <StyledRow>
           <StyledField>
             <TextField
+              autoComplete="off"
               size="small"
               fullWidth
               label="model name"
@@ -93,6 +94,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
           </StyledField>
           <StyledField>
             <TextField
+              autoComplete="off"
               size="small"
               fullWidth
               label="tau"
@@ -109,6 +111,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
         <StyledRow>
           <StyledField>
             <TextField
+              autoComplete="off"
               size="small"
               fullWidth
               label="alpha"
@@ -123,6 +126,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
           </StyledField>
           <StyledField>
             <TextField
+              autoComplete="off"
               size="small"
               fullWidth
               label="beta"
@@ -139,6 +143,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
         <StyledRow>
           <StyledField>
             <TextField
+              autoComplete="off"
               size="small"
               fullWidth
               label="gamma"
@@ -153,6 +158,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
           </StyledField>
           <StyledField>
             <TextField
+              autoComplete="off"
               size="small"
               fullWidth
               label="batch size"
@@ -174,6 +180,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
         <StyledRow>
           <StyledField>
             <TextField
+              autoComplete="off"
               size="small"
               fullWidth
               label="epochs"
@@ -190,6 +197,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
           </StyledField>
           <StyledField>
             <TextField
+              autoComplete="off"
               size="small"
               fullWidth
               label="rebalance window"
@@ -215,6 +223,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
               label="training start date"
               name="trainingStartDate"
               value={formik.values["trainingStartDate"]}
+              minDate={dayjs("1977-01-01")}
               maxDate={dayjs().endOf("year").subtract(1, "year")}
               onChange={(value) => {
                 formik.setFieldValue("trainingStartDate", value, true);
@@ -242,6 +251,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
               label="training end date"
               name="trainingEndDate"
               value={formik.values["trainingEndDate"]}
+              minDate={dayjs("1977-01-01")}
               maxDate={dayjs().endOf("year").subtract(1, "year")}
               onChange={(value) => {
                 formik.setFieldValue("trainingEndDate", value, true);
@@ -266,6 +276,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
         <StyledRow>
           <StyledField>
             <TextField
+              autoComplete="off"
               size="small"
               fullWidth
               label="principal"
@@ -286,6 +297,7 @@ export const TrainParamsForm = memo(({ setStage, formik }) => {
 
           <StyledField>
             <TextField
+              autoComplete="off"
               fullWidth
               select
               label="model type"
