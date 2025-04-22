@@ -17,7 +17,10 @@ const SliderContainer = styled(Box)`
 
 const ChartContainer = styled(Box)`
   flex: 1;
-  min-height: 350px;
+  height: 100%;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
 `;
 
 const generateColors = (count) => {
@@ -72,7 +75,6 @@ export const PortfolioWeightsChart = memo(({ weightHistory, timeRange }) => {
             marks={marks}
             valueLabelDisplay="auto"
             valueLabelFormat={(value) => timeRange[value]}
-            aria-labelledby="time-slider"
           />
         </SliderContainer>
       </Box>
@@ -86,17 +88,23 @@ export const PortfolioWeightsChart = memo(({ weightHistory, timeRange }) => {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={150}
+                outerRadius={Math.min(80, window.innerHeight * 0.15)} // Dynamic radius for smaller screens
                 isAnimationActive={false}
                 label={({ name, value }) =>
                   `${name}: ${(value * 100).toFixed(2)}%`
                 }
+                labelLine={{ stroke: "#666", strokeWidth: 1 }}
               >
                 {pieData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={colors[index]} />
                 ))}
               </Pie>
-              <Legend />
+              <Legend
+                layout="horizontal"
+                align="center"
+                verticalAlign="bottom"
+                wrapperStyle={{ paddingTop: "10px" }}
+              />
             </PieChart>
           </ResponsiveContainer>
         ) : (
