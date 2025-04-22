@@ -2,6 +2,7 @@ from flask import Blueprint, Response, json, request
 from ..services import ModelService
 from ..errors import FileNotFoundException, ModelNotFoundException
 import uuid_utils as uuid
+import shutil
 
 model = Blueprint("model", __name__)
 model_service = ModelService()
