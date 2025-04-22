@@ -326,6 +326,7 @@ export const SelectStockTable = memo(
             ))}
           </StyledSelect>
           <SearchBar
+            autoComplete="off"
             variant="outlined"
             placeholder="Search"
             value={search}
