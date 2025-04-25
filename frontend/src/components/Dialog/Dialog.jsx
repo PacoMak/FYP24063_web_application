@@ -16,7 +16,7 @@ const StyledContent = styled(DialogContent)`
   overflow: auto;
   max-height: 70vh;
 `;
-
+const StyledDialogTitle = styled(DialogTitle)``;
 export const Dialog = memo(
   ({ children, className, actions = [], handleClose, title, ...props }) => {
     const dialogActions = useMemo(() => {
@@ -39,7 +39,7 @@ export const Dialog = memo(
 
     return (
       <MuiDialog {...props} className={className} maxWidth={"md"}>
-        <DialogTitle>{title}</DialogTitle>
+        <StyledDialogTitle>{title}</StyledDialogTitle>
         <StyledContent>{children}</StyledContent>
 
         <DialogActions>
