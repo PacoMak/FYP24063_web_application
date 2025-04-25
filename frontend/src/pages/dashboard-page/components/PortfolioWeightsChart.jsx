@@ -1,4 +1,4 @@
-import { memo, useState, useMemo } from "react";
+import { memo, useState, useMemo, useCallback } from "react";
 import { Box, Slider, Typography } from "@mui/material";
 import styled from "styled-components";
 import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from "recharts";
@@ -36,11 +36,14 @@ const generateColors = (count) => {
 export const PortfolioWeightsChart = memo(({ weightHistory, timeRange }) => {
   const [selectedTimeIndex, setSelectedTimeIndex] = useState(0);
 
-  const handleSliderChange = (event, newValue) => {
+  const handleSliderChange = useCallback((event, newValue) => {
     setSelectedTimeIndex(newValue);
-  };
+  }, []);
 
-  const weights = weightHistory[selectedTimeIndex] || {};
+  const weights = useMemo(
+    () => weightHistory[selectedTimeIndex] ?? {},
+    [selectedTimeIndex, weightHistory]
+  );
 
   const pieData = useMemo(() => {
     return Object.entries(weights).map(([symbol, weight]) => ({
@@ -88,7 +91,7 @@ export const PortfolioWeightsChart = memo(({ weightHistory, timeRange }) => {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={Math.min(80, window.innerHeight * 0.15)} // Dynamic radius for smaller screens
+                outerRadius={Math.min(80, window.innerHeight * 0.15)}
                 isAnimationActive={false}
                 label={({ name, value }) =>
                   `${name}: ${(value * 100).toFixed(2)}%`

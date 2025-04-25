@@ -96,11 +96,12 @@ const StyledDeleteIcon = styled(DeleteIcon)`
     fill: ${({ theme }) => theme.colors.button.delete.color};
   }
 `;
-const rowsPerPageOptions = [10];
+
 export const ModelsPage = memo(() => {
   const { showSpinner, hideSpinner, showErrorDialog } = useOverlay();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const rowsPerPage = useMemo(() => 10, []);
+  const rowsPerPageOptions = useMemo(() => [10], []);
   const [selectedModels, setSelectedModels] = useState([]);
   const { data: modelList, isFetching } = useModelList();
   const { mutateAsync: deleteModelAsync } = useDeleteModel();
@@ -247,14 +248,14 @@ export const ModelsPage = memo(() => {
           rowKey={"model_id"}
           page={page}
           rowsPerPageOptions={rowsPerPageOptions}
-          onRowsPerPageChange={(event) => {
-            setRowsPerPage(event.target.value);
-          }}
           rowsPerPage={rowsPerPage}
           onPageChange={(_, newPage) => {
             setPage(newPage);
           }}
           onRowClick={(datum) => {
+            if (datum.disableSelect) {
+              return;
+            }
             navigate(`${ROUTES.Dashboard.render(datum.model_id)}`);
           }}
           count={models.length}
