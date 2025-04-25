@@ -13,7 +13,6 @@ class ActorNetworkFC(nn.Module):
         super(ActorNetworkFC, self).__init__()
         self.name = name
         self.n_actions = n_actions
-        # self.input_size = (n_actions-1) * 4 + n_actions + 1
         self.input_size = (n_actions - 1) * 7 + n_actions
         self.relu = nn.ReLU()
 
@@ -41,7 +40,6 @@ class ActorNetworkFC(nn.Module):
         self.softmax = nn.Softmax(dim=-1)
         self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
 
-        # self.device = T.device("cuda:0" if T.cuda.is_available() else "cpu")
         self.device = T.device("cpu")
         self.to(self.device)
 
@@ -56,14 +54,7 @@ class ActorNetworkFC(nn.Module):
         x = self.bn3(x)
         x = F.relu(x)
         x = self.mu(x)
-        # if (x.ndim == 1):
-        #     print("actor mu:", x)
-        # print("actor mu:", x)
-        # x = self.sigmoid(x)
         x = self.softmax(x)
-        # if (x.ndim == 1):
-        #     print("actor sigmoid:", x)
-        # print("actor sigmoid:", x)
         return x
 
     def save_checkpoint(self, path):

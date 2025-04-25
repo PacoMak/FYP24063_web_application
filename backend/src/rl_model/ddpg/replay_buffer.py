@@ -18,7 +18,9 @@ class ReplayBuffer(object):
         self.new_state[index] = new_state
         self.action_memory[index] = action
         self.reward_memory[index] = reward
-        self.terminal_memory[index] = done  # For bellman equation, to multiply whether or not the episode is over
+        self.terminal_memory[index] = (
+            done  # For bellman equation, to multiply whether or not the episode is over
+        )
         self.mem_cntr += 1
 
     def sample_buffer(self, batch_size):

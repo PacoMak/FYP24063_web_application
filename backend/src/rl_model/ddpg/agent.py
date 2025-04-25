@@ -2,7 +2,7 @@ import torch as T
 import torch.nn.functional as F
 import torch.nn as nn
 import numpy as np
-import os
+
 from .ou_action_noise import OUActionNoise
 from .replay_buffer import ReplayBuffer
 
@@ -96,16 +96,32 @@ class Agent(object):
             )
         elif model == 3:
             self.actor = ActorNetworkAmplifier(
-                learning_rate=alpha, n_actions=n_actions, name="actor"
+                learning_rate=alpha,
+                n_actions=n_actions,
+                lstm_size=128,
+                fc_size=84,
+                name="actor",
             )
             self.critic = CriticNetworkAmplifier(
-                learning_rate=beta, n_actions=n_actions, name="critic"
+                learning_rate=beta,
+                n_actions=n_actions,
+                lstm_size=128,
+                fc_size=84,
+                name="critic",
             )
             self.target_actor = ActorNetworkAmplifier(
-                learning_rate=alpha, n_actions=n_actions, name="target_actor"
+                learning_rate=alpha,
+                n_actions=n_actions,
+                lstm_size=128,
+                fc_size=84,
+                name="target_actor",
             )
             self.target_critic = CriticNetworkAmplifier(
-                learning_rate=beta, n_actions=n_actions, name="target_critic"
+                learning_rate=beta,
+                n_actions=n_actions,
+                lstm_size=128,
+                fc_size=84,
+                name="target_critic",
             )
 
         self.noise = OUActionNoise(mu=np.zeros(n_actions), sigma=0.3, theta=0.2)
@@ -116,25 +132,17 @@ class Agent(object):
 
         self.update_network_parameters(tau=1)
 
-    def choose_action(self, observation, is_training):
+    def choose_action(self, observation, is_training, expl_prob=0):
         self.actor.eval()
         observation = T.tensor(observation, dtype=T.float).to(self.actor.device)
         mu = self.actor.forward(observation).to(self.actor.device)
         self.actor.train()
-        # print("mu:", mu)
 
         # Epsilon-greedy exploration using noise
         if is_training == True:
             epsilon = np.random.rand()
-            if self.memory.mem_cntr < 5000:
-                if epsilon < 0.5:
-                    mu += T.tensor(self.noise(), dtype=T.float).to(self.actor.device)
-            elif self.memory.mem_cntr < 10000:
-                if epsilon < 0.25:
-                    mu += T.tensor(self.noise(), dtype=T.float).to(self.actor.device)
-            else:
-                if epsilon < 0.1:
-                    mu += T.tensor(self.noise(), dtype=T.float).to(self.actor.device)
+            if epsilon < expl_prob:
+                mu += T.tensor(self.noise(), dtype=T.float).to(self.actor.device)
 
         if self.model == 1 or self.model == 2:
             mu = self.softmax(mu)  # Ensure actions sum to 1
@@ -180,7 +188,6 @@ class Agent(object):
 
         # Calculation of the loss function for the critic network
         self.critic.optimizer.zero_grad()
-        # critic_loss = F.mse_loss(critic_value, target)
         critic_loss = F.huber_loss(critic_value, target, delta=1)
         cl = critic_loss.cpu().detach().numpy()
         critic_loss.backward()

@@ -73,8 +73,3 @@ class StockService:
             sectors.remove("Other")
             sectors.append("Other")
         return sectors
-
-
-if __name__ == "__main__":
-    spy = yf.Ticker("AAPL")
-    print(spy.info)

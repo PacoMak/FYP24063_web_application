@@ -6,8 +6,7 @@ from ..rl_model import (
     get_model_paths,
     SAVED_MODELS_DIR,
     Agent,
-    TradingSimulatorAmplifier,
-    TradingSimulatorV2,
+    TradingSimulator,
     test,
 )
 from ..errors import FileNotFoundException, ModelNotFoundException
@@ -70,25 +69,17 @@ class ModelService:
         if not os.path.isdir(model_paths["graph_dir"]):
             os.makedirs(model_paths["graph_dir"])
 
+        train_env = TradingSimulator(
+            principal=principal,
+            assets=assets,
+            start_date=start_date,
+            end_date=end_date,
+            rebalance_window=rebalance_window,
+            tx_fee_per_share=tx_fee_per_share,
+        )
         if model_type == 1 or model_type == 2:
-            train_env = TradingSimulatorV2(
-                principal=principal,
-                assets=assets,
-                start_date=start_date,
-                end_date=end_date,
-                rebalance_window=rebalance_window,
-                tx_fee_per_share=tx_fee_per_share,
-            )
             n_actions = len(assets) + 1
         elif model_type == 3:
-            train_env = TradingSimulatorAmplifier(
-                principal=principal,
-                assets=assets,
-                start_date=start_date,
-                end_date=end_date,
-                rebalance_window=rebalance_window,
-                tx_fee_per_share=tx_fee_per_share,
-            )
             n_actions = len(assets)
 
         agent = Agent(
@@ -152,25 +143,17 @@ class ModelService:
         batch_size = params["batch_size"]
         model_type = params["model_type"]
 
+        test_env = TradingSimulator(
+            principal=principal,
+            assets=assets,
+            start_date=start_date,
+            end_date=end_date,
+            rebalance_window=rebalance_window,
+            tx_fee_per_share=tx_fee_per_share,
+        )
         if model_type == 1 or model_type == 2:
-            test_env = TradingSimulatorV2(
-                principal=principal,
-                assets=assets,
-                start_date=start_date,
-                end_date=end_date,
-                rebalance_window=rebalance_window,
-                tx_fee_per_share=tx_fee_per_share,
-            )
             n_actions = len(assets) + 1
         elif model_type == 3:
-            test_env = TradingSimulatorAmplifier(
-                principal=principal,
-                assets=assets,
-                start_date=start_date,
-                end_date=end_date,
-                rebalance_window=rebalance_window,
-                tx_fee_per_share=tx_fee_per_share,
-            )
             n_actions = len(assets)
 
         agent = Agent(
