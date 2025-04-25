@@ -12,7 +12,6 @@ class CriticNetworkFC(nn.Module):
     def __init__(self, learning_rate, n_actions, fc1_dims, fc2_dims, fc3_dims, name):
         super(CriticNetworkFC, self).__init__()
         self.name = name
-        # input_size = (n_actions-1) * 4 + n_actions + 1
         input_size = (n_actions - 1) * 7 + n_actions
         self.relu = nn.ReLU()
 
@@ -46,7 +45,6 @@ class CriticNetworkFC(nn.Module):
 
         self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
 
-        # self.device = T.device("cuda:0" if T.cuda.is_available() else "cpu")
         self.device = T.device("cpu")
         self.to(self.device)
 
@@ -66,11 +64,6 @@ class CriticNetworkFC(nn.Module):
         state_action_value = T.add(state_value, action_value)
         state_action_value = F.relu(state_action_value)
         state_action_value = self.q(state_action_value)
-
-        # state_action_vaule = T.cat((state_value, action), dim=-1)
-        # state_action_value = self.bn4(state_action_vaule)
-        # state_action_value = F.relu(state_action_value)                 # might need to change, relu then add vs add then relu
-        # state_action_value = self.q(state_action_value)
 
         return state_action_value
 
