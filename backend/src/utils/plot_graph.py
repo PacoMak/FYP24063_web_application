@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import matplotlib
+
+matplotlib.use("agg")
 
 
 def plot_return_over_episodes(episode_axis, return_axis, label, path):

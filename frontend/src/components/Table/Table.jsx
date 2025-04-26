@@ -8,7 +8,10 @@ import {
   TableRow,
 } from "@mui/material";
 import { memo } from "react";
-
+import styled from "styled-components";
+const StyledTableRow = styled(TableRow)`
+  cursor: ${({ $canSelect }) => ($canSelect ? "pointer" : "auto")};
+`;
 export const Table = memo(
   ({
     className,
@@ -30,7 +33,8 @@ export const Table = memo(
         </TableHead>
         <TableBody>
           {data.map((datum) => (
-            <TableRow
+            <StyledTableRow
+              $canSelect={datum.disableSelect !== true && onRowClick}
               key={datum[rowKey]}
               onClick={() => {
                 if (onRowClick) {
@@ -41,7 +45,7 @@ export const Table = memo(
               {cols.map((col) => (
                 <TableCell key={col.key}>{col.render(datum)}</TableCell>
               ))}
-            </TableRow>
+            </StyledTableRow>
           ))}
         </TableBody>
         <TableFooter>

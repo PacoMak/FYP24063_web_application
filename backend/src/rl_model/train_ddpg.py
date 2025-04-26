@@ -101,32 +101,32 @@ def train(agent, env, num_epoch, model_id, log_fn=None):
                     critic_path=model_paths["critic"],
                     target_critic_path=model_paths["target_critic"],
                 )
-                if __name__ == "__main__":
-                    episode_axis = range(1, i + 1)
-                    plot_return_over_episodes(
-                        episode_axis,
-                        return_history["ddpg"],
-                        "ddpg",
-                        model_paths["return_over_epoch_graph"],
-                    )
-                    plot_sharpe_ratio_over_episodes(
-                        episode_axis,
-                        sharpe_ratio_history["ddpg"],
-                        "ddpg",
-                        model_paths["sharpe_ratio_over_epoch_graph"],
-                    )
-                    plot_mean_actor_loss_over_episodes(
-                        episode_axis,
-                        actor_loss_history["ddpg"],
-                        "ddpg",
-                        model_paths["actor_loss_graph"],
-                    )
-                    plot_mean_critic_loss_over_episodes(
-                        episode_axis,
-                        critic_loss_history["ddpg"],
-                        "ddpg",
-                        model_paths["critic_loss_graph"],
-                    )
+                episode_axis = range(1, i + 1)
+                plot_return_over_episodes(
+                    episode_axis,
+                    return_history["ddpg"],
+                    "ddpg",
+                    model_paths["return_over_epoch_graph"],
+                )
+                plot_sharpe_ratio_over_episodes(
+                    episode_axis,
+                    sharpe_ratio_history["ddpg"],
+                    "ddpg",
+                    model_paths["sharpe_ratio_over_epoch_graph"],
+                )
+                plot_mean_actor_loss_over_episodes(
+                    episode_axis,
+                    actor_loss_history["ddpg"],
+                    "ddpg",
+                    model_paths["actor_loss_graph"],
+                )
+                plot_mean_critic_loss_over_episodes(
+                    episode_axis,
+                    critic_loss_history["ddpg"],
+                    "ddpg",
+                    model_paths["critic_loss_graph"],
+                )
+
             log_fn(
                 f"------Episode {i} Summary: Total Return {total_return:.2f}; Sharpe Ratio {sharpe_ratio:.5f};------\n"
             )
@@ -234,16 +234,13 @@ def test(agent, env, assets, model_id):
         yearly_return_rate_history["MPT"] = yearly_return
         monthly_return_rate_history["MPT"] = monthly_return
     time_range = env.trading_date_range()
-    if __name__ == "__main__":
-        plot_return_over_time(
-            env, return_history, model_paths["return_over_time_graph"]
-        )
-        plot_monthly_return_rate(
-            env, monthly_return_rate_history, model_paths["monthly_return_graph"]
-        )
-        plot_yearly_return_rate(
-            env, yearly_return_rate_history, model_paths["yearly_return_graph"]
-        )
+    plot_return_over_time(env, return_history, model_paths["return_over_time_graph"])
+    plot_monthly_return_rate(
+        env, monthly_return_rate_history, model_paths["monthly_return_graph"]
+    )
+    plot_yearly_return_rate(
+        env, yearly_return_rate_history, model_paths["yearly_return_graph"]
+    )
     return return_history, time_range, weight_history
 
 
