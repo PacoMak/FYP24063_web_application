@@ -28,7 +28,7 @@ const Title = styled.span`
   color: ${({ theme }) => theme.colors.title.color};
 `;
 export const BasePage = memo(({ children, title }) => {
-  const drawerWidth = 250;
+  const drawerWidth = 200;
   return (
     <Wrapper sx={{ display: "flex", height: "100%" }}>
       <CssBaseline />

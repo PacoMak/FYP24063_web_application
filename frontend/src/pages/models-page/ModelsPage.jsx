@@ -56,7 +56,6 @@ const TableContainer = styled.div`
   overflow: auto;
 `;
 const StyledTable = styled(Table)`
-  border: none;
   thead {
     position: sticky;
     top: 0px;
@@ -73,7 +72,6 @@ const StyledTable = styled(Table)`
   }
   .MuiTableRow-root {
     &:hover {
-      cursor: pointer;
       background-color: ${({ theme }) =>
         theme.colors.table.body.hover.background};
     }
